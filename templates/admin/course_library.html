@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+{% block title %}Library — {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.lib-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; margin-bottom:28px; }
+.lib-header-left .breadcrumb { display:flex; align-items:center; gap:8px; font-size:0.82rem; color:var(--text-muted); margin-bottom:8px; }
+.lib-header-left .breadcrumb a { color:var(--text-muted); transition:color .15s; }
+.lib-header-left .breadcrumb a:hover { color:var(--primary-light); }
+.lib-header-left h1 { font-size:1.7rem; font-weight:800; letter-spacing:-0.5px; display:flex; align-items:center; gap:10px; }
+.lib-header-left p  { color:var(--text-muted); font-size:0.88rem; margin-top:4px; }
+.lib-actions { display:flex; gap:10px; }
+
+.lib-stats { display:flex; gap:14px; margin-bottom:28px; flex-wrap:wrap; }
+.lib-stat { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); padding:14px 22px; display:flex; align-items:center; gap:12px; min-width:130px; }
+.lib-stat-icon { font-size:1.5rem; }
+.lib-stat-num  { font-size:1.3rem; font-weight:800; }
+.lib-stat-lbl  { font-size:0.75rem; color:var(--text-muted); margin-top:1px; }
+
+.section-title { font-size:1rem; font-weight:700; margin-bottom:14px; display:flex; align-items:center; gap:10px; color:var(--text); }
+.section-title .count { font-size:0.75rem; background:rgba(255,255,255,0.08); padding:2px 10px; border-radius:99px; color:var(--text-muted); font-weight:500; }
+
+.folder-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:14px; margin-bottom:36px; }
+.folder-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:18px; cursor:pointer; transition:transform .18s, box-shadow .18s, border-color .18s; text-decoration:none; display:block; position:relative; overflow:hidden; }
+.folder-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--folder-color,#6366f1); }
+.folder-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:rgba(255,255,255,0.15); }
+.folder-icon { font-size:2rem; margin-bottom:10px; }
+.folder-name { font-weight:700; font-size:0.95rem; color:var(--text); margin-bottom:4px; }
+.folder-desc { font-size:0.78rem; color:var(--text-muted); line-height:1.5; margin-bottom:10px; min-height:32px; }
+.folder-meta { display:flex; align-items:center; justify-content:space-between; }
+.folder-count { font-size:0.75rem; color:var(--text-muted); }
+.folder-del-btn { background:none; border:none; color:var(--text-dim); font-size:0.82rem; cursor:pointer; padding:3px 6px; border-radius:6px; opacity:0; transition:opacity .15s, color .15s, background .15s; }
+.folder-card:hover .folder-del-btn { opacity:1; }
+.folder-del-btn:hover { color:var(--danger); background:rgba(239,68,68,0.12); }
+.new-folder-card { border:2px dashed var(--border); border-radius:var(--radius-lg); padding:18px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; cursor:pointer; min-height:130px; transition:border-color .2s, background .2s; background:transparent; color:var(--text-muted); }
+.new-folder-card:hover { border-color:var(--primary); background:rgba(99,102,241,0.05); color:var(--primary-light); }
+.new-folder-card span { font-size:1.6rem; }
+.new-folder-card p   { font-size:0.82rem; font-weight:600; }
+
+.item-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:12px; }
+.item-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; transition:transform .15s, border-color .15s; }
+.item-card:hover { transform:translateY(-2px); border-color:rgba(255,255,255,0.15); }
+.item-thumb { width:100%; height:100px; background:rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center; font-size:2.2rem; overflow:hidden; }
+.item-thumb img { width:100%; height:100%; object-fit:cover; }
+.item-body { padding:10px 12px; }
+.item-type-badge { display:inline-block; font-size:0.65rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:2px 8px; border-radius:99px; margin-bottom:6px; }
+.type-youtube,.type-youtube_live{background:rgba(255,0,0,.15);color:#f87171}
+.type-video{background:rgba(99,102,241,.15);color:var(--primary-light)}
+.type-pdf{background:rgba(239,68,68,.12);color:#fca5a5}
+.type-link{background:rgba(59,130,246,.15);color:#93c5fd}
+.type-photo{background:rgba(16,185,129,.15);color:#6ee7b7}
+.item-title { font-size:0.84rem; font-weight:600; color:var(--text); line-height:1.4; margin-bottom:8px; }
+.item-actions { display:flex; gap:5px; }
+.item-action-btn { font-size:0.72rem; padding:4px 9px; border-radius:6px; border:none; cursor:pointer; font-weight:600; transition:background .15s; }
+.btn-del-item { background:rgba(239,68,68,.15); color:#f87171; }
+.btn-del-item:hover { background:rgba(239,68,68,.28); }
+
+.empty-lib { text-align:center; padding:60px 20px; color:var(--text-muted); }
+.empty-lib .ei { font-size:3rem; margin-bottom:12px; }
+.empty-lib h3 { font-size:1.1rem; font-weight:600; margin-bottom:6px; color:var(--text); }
+
+/* Modals */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:200; display:none; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-lg); }
+.modal-box h2 { font-size:1.2rem; font-weight:800; margin-bottom:20px; }
+.modal-field { margin-bottom:16px; }
+.modal-label { display:block; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-bottom:6px; }
+.modal-input,.modal-select,.modal-textarea { width:100%; background:rgba(255,255,255,.04); border:1.5px solid var(--border); border-radius:9px; padding:10px 14px; color:var(--text); font-size:0.88rem; outline:none; transition:border-color .2s; }
+.modal-input:focus,.modal-select:focus,.modal-textarea:focus { border-color:var(--primary); }
+.modal-textarea { resize:vertical; min-height:60px; }
+.modal-select option { background:var(--bg-card); }
+.icon-picker { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.icon-opt { font-size:1.3rem; cursor:pointer; padding:5px; border-radius:8px; border:2px solid transparent; transition:border-color .15s, background .15s; }
+.icon-opt:hover,.icon-opt.selected { border-color:var(--primary); background:rgba(99,102,241,.12); }
+.color-swatches { display:flex; gap:7px; flex-wrap:wrap; margin-top:6px; }
+.swatch { width:26px; height:26px; border-radius:50%; cursor:pointer; border:3px solid transparent; transition:border-color .15s, transform .15s; }
+.swatch:hover,.swatch.selected { border-color:#fff; transform:scale(1.15); }
+.type-tabs { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:16px; }
+.type-tab { padding:6px 12px; border-radius:8px; border:1.5px solid var(--border); background:none; color:var(--text-muted); font-size:0.8rem; font-weight:600; cursor:pointer; transition:all .15s; }
+.type-tab.active,.type-tab:hover { border-color:var(--primary); background:rgba(99,102,241,.12); color:var(--primary-light); }
+.type-fields { display:none; }
+.type-fields.show { display:block; }
+.modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+.btn-cancel { background:rgba(255,255,255,.06); border:1px solid var(--border); color:var(--text-muted); padding:9px 18px; border-radius:8px; font-weight:600; cursor:pointer; }
+.btn-cancel:hover { background:rgba(255,255,255,.1); }
+.btn-submit { background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; border:none; padding:9px 22px; border-radius:8px; font-weight:700; cursor:pointer; }
+.btn-submit:hover { filter:brightness(1.1); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <div class="lib-header">
+    <div class="lib-header-left">
+      <div class="breadcrumb">
+        <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+        <span>/</span>
+        <a href="{{ url_for('admin_lessons', course_id=course.id) }}">{{ course.title }}</a>
+        <span>/</span>
+        <span>Content Library</span>
+      </div>
+      <h1>📂 {{ course.title }}</h1>
+      <p>Content library — organise videos, PDFs, links, photos and more for this course.</p>
+    </div>
+    <div class="lib-actions">
+      <button class="btn btn-outline" onclick="openModal('folderModal')" data-testid="button-new-folder">+ New Folder</button>
+      <button class="btn btn-primary" onclick="openModal('contentModal')" data-testid="button-add-content">+ Add Content</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="lib-stats">
+    <div class="lib-stat">
+      <div class="lib-stat-icon">📁</div>
+      <div><div class="lib-stat-num">{{ folders|length }}</div><div class="lib-stat-lbl">Folders</div></div>
+    </div>
+    <div class="lib-stat">
+      <div class="lib-stat-icon">🗂</div>
+      <div><div class="lib-stat-num">{{ total_items }}</div><div class="lib-stat-lbl">Total Items</div></div>
+    </div>
+    <div class="lib-stat">
+      <div class="lib-stat-icon">📌</div>
+      <div><div class="lib-stat-num">{{ uncategorized|length }}</div><div class="lib-stat-lbl">Uncategorized</div></div>
+    </div>
+  </div>
+
+  <!-- Folders -->
+  <div class="section-title">Folders <span class="count">{{ folders|length }}</span></div>
+  <div class="folder-grid">
+    {% for folder in folders %}
+    <a href="{{ url_for('admin_course_folder', course_id=course.id, folder_id=folder.id) }}"
+       class="folder-card" style="--folder-color:{{ folder.color }}"
+       data-testid="card-folder-{{ folder.id }}">
+      <div class="folder-icon">{{ folder.icon }}</div>
+      <div class="folder-name">{{ folder.name }}</div>
+      <div class="folder-desc">{{ folder.description or '' }}</div>
+      <div class="folder-meta">
+        <span class="folder-count">{{ folder.item_count }} item{{ 's' if folder.item_count != 1 else '' }}</span>
+        <form method="POST" action="{{ url_for('admin_course_delete_folder', course_id=course.id, folder_id=folder.id) }}"
+              onsubmit="return confirmFolderDel(event,'{{ folder.name }}')">
+          <button type="submit" class="folder-del-btn" title="Delete folder">🗑</button>
+        </form>
+      </div>
+    </a>
+    {% endfor %}
+    <button class="new-folder-card" onclick="openModal('folderModal')">
+      <span>➕</span><p>New Folder</p>
+    </button>
+  </div>
+
+  <!-- Uncategorized -->
+  {% if uncategorized %}
+  <div class="section-title">Uncategorized <span class="count">{{ uncategorized|length }}</span></div>
+  <div class="item-grid">
+    {% for item in uncategorized %}
+    <div class="item-card" data-testid="card-item-{{ item.id }}">
+      <div class="item-thumb">
+        {% if item.type in ('youtube','youtube_live') and item.url %}
+          <img src="https://img.youtube.com/vi/{{ item.url | extract_yt_id }}/mqdefault.jpg" alt="" onerror="this.parentElement.innerHTML='🎬'"/>
+        {% elif item.type == 'photo' and item.file_path %}
+          <img src="{{ url_for('static', filename=item.file_path) }}" alt=""/>
+        {% elif item.type == 'video' %}📹
+        {% elif item.type == 'pdf' %}📄
+        {% elif item.type == 'link' %}🔗
+        {% else %}📎{% endif %}
+      </div>
+      <div class="item-body">
+        <span class="item-type-badge type-{{ item.type }}">{{ item.type.replace('_',' ') }}</span>
+        <div class="item-title">{{ item.title }}</div>
+        <div class="item-actions">
+          <form method="POST" action="{{ url_for('admin_course_delete_content', course_id=course.id, item_id=item.id) }}"
+                onsubmit="return confirm('Delete this item?')">
+            <button type="submit" class="item-action-btn btn-del-item" data-testid="button-delete-item-{{ item.id }}">Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% elif not folders %}
+  <div class="empty-lib">
+    <div class="ei">📂</div>
+    <h3>No content yet</h3>
+    <p>Create a folder or add content directly to this course library.</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- New Folder Modal -->
+<div class="modal-overlay" id="folderModal">
+  <div class="modal-box">
+    <h2>📁 New Folder</h2>
+    <form method="POST" action="{{ url_for('admin_course_create_folder', course_id=course.id) }}">
+      <div class="modal-field">
+        <label class="modal-label">Folder Name *</label>
+        <input type="text" name="name" class="modal-input" placeholder="e.g. Module 1 — Introduction" required data-testid="input-folder-name"/>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Description</label>
+        <textarea name="description" class="modal-textarea" placeholder="Optional description..."></textarea>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Icon</label>
+        <input type="hidden" name="icon" id="folderIconInput" value="📁"/>
+        <div class="icon-picker">
+          {% for icon in ['📁','🎓','🎬','📚','🎯','🏆','⚡','🔥','💡','🖼️','📄','🎵','🔗','🌟','🛠️','📊'] %}
+          <span class="icon-opt {% if loop.first %}selected{% endif %}" onclick="selectIcon(this,'{{ icon }}')">{{ icon }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Color</label>
+        <input type="hidden" name="color" id="folderColorInput" value="#6366f1"/>
+        <div class="color-swatches">
+          {% for color in ['#6366f1','#8b5cf6','#ec4899','#ef4444','#f97316','#eab308','#22c55e','#10b981','#06b6d4','#3b82f6'] %}
+          <div class="swatch {% if color=='#6366f1' %}selected{% endif %}"
+               style="background:{{ color }}" onclick="selectColor(this,'{{ color }}')"></div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('folderModal')">Cancel</button>
+        <button type="submit" class="btn-submit" data-testid="button-create-folder">Create Folder</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add Content Modal -->
+<div class="modal-overlay" id="contentModal">
+  <div class="modal-box">
+    <h2>➕ Add Content</h2>
+    <form method="POST" action="{{ url_for('admin_course_add_content', course_id=course.id) }}" enctype="multipart/form-data">
+      <input type="hidden" name="type" id="contentTypeInput" value="youtube"/>
+      <input type="hidden" name="folder_id" value=""/>
+      <div class="modal-field">
+        <label class="modal-label">Type</label>
+        <div class="type-tabs">
+          <button type="button" class="type-tab active" onclick="setType('youtube',this)">🎬 YouTube</button>
+          <button type="button" class="type-tab" onclick="setType('youtube_live',this)">📡 YT Live</button>
+          <button type="button" class="type-tab" onclick="setType('video',this)">📹 Video</button>
+          <button type="button" class="type-tab" onclick="setType('pdf',this)">📄 PDF</button>
+          <button type="button" class="type-tab" onclick="setType('photo',this)">🖼️ Photo</button>
+          <button type="button" class="type-tab" onclick="setType('link',this)">🔗 Link</button>
+        </div>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Title *</label>
+        <input type="text" name="title" class="modal-input" placeholder="Content name" required data-testid="input-content-title"/>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Description</label>
+        <textarea name="description" class="modal-textarea" placeholder="Optional notes..."></textarea>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Folder (optional)</label>
+        <select name="folder_id" class="modal-select">
+          <option value="">— Uncategorized —</option>
+          {% for folder in folders %}
+          <option value="{{ folder.id }}">{{ folder.icon }} {{ folder.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="type-fields show" id="fields-youtube">
+        <div class="modal-field"><label class="modal-label">YouTube URL</label>
+          <input type="url" name="url" class="modal-input" placeholder="https://youtube.com/watch?v=..."/></div>
+      </div>
+      <div class="type-fields" id="fields-youtube_live">
+        <div class="modal-field"><label class="modal-label">YouTube Live / Unlisted URL</label>
+          <input type="url" name="url" class="modal-input" placeholder="https://youtube.com/live/..."/></div>
+      </div>
+      <div class="type-fields" id="fields-link">
+        <div class="modal-field"><label class="modal-label">URL</label>
+          <input type="url" name="url" class="modal-input" placeholder="https://example.com"/></div>
+      </div>
+      <div class="type-fields" id="fields-video">
+        <div class="modal-field"><label class="modal-label">Video File (mp4, webm, mov, avi, mkv)</label>
+          <input type="file" name="file" class="modal-input" accept=".mp4,.webm,.mov,.avi,.mkv"/></div>
+        <div class="modal-field"><label class="modal-label">Or Video URL</label>
+          <input type="url" name="url" class="modal-input" placeholder="https://..."/></div>
+      </div>
+      <div class="type-fields" id="fields-pdf">
+        <div class="modal-field"><label class="modal-label">PDF File</label>
+          <input type="file" name="file" class="modal-input" accept=".pdf"/></div>
+      </div>
+      <div class="type-fields" id="fields-photo">
+        <div class="modal-field"><label class="modal-label">Image File</label>
+          <input type="file" name="file" class="modal-input" accept=".jpg,.jpeg,.png,.gif,.webp"/></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('contentModal')">Cancel</button>
+        <button type="submit" class="btn-submit" data-testid="button-add-content-submit">Add Content</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target===m) m.classList.remove('open'); });
+});
+function selectIcon(el,icon) {
+  document.querySelectorAll('.icon-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('folderIconInput').value=icon;
+}
+function selectColor(el,color) {
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('folderColorInput').value=color;
+}
+const typeAllIds=['youtube','youtube_live','video','pdf','photo','link'];
+function setType(type,btn) {
+  document.getElementById('contentTypeInput').value=type;
+  document.querySelectorAll('.type-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  typeAllIds.forEach(t=>{
+    const el=document.getElementById('fields-'+t);
+    if(el) el.classList.toggle('show',t===type);
+  });
+}
+function confirmFolderDel(e,name) {
+  e.stopPropagation();
+  if(!confirm(`Delete folder "${name}"? Contents will move to Uncategorized.`)){e.preventDefault();return false;}
+  return true;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+{% block title %}Manage Lessons — {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Lesson attachment panel ─────────────────────────────── */
+.lesson-att-panel {
+  display: none;
+  border-top: 1px solid rgba(255,255,255,.08);
+  padding: 14px 16px 16px;
+  background: rgba(0,0,0,.15);
+  gap: 20px;
+}
+.lesson-att-panel.open { display: flex; flex-wrap: wrap; }
+
+.att-col { flex: 1; min-width: 220px; }
+.att-col-title {
+  font-size: .72rem; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.att-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; min-height: 24px; }
+.att-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(99,102,241,.18); border: 1px solid rgba(99,102,241,.4);
+  color: #c4c7ff; border-radius: 20px; padding: 3px 10px 3px 9px;
+  font-size: .78rem;
+}
+.att-chip-remove {
+  background: none; border: none; color: #f87171; cursor: pointer;
+  font-size: .9rem; padding: 0; line-height: 1;
+}
+.att-chip-remove:hover { color: #ef4444; }
+
+.att-picker { position: relative; }
+.att-picker select {
+  width: 100%; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.15);
+  color: #e2e8f0; border-radius: 6px; padding: 6px 10px; font-size: .82rem;
+  appearance: none; cursor: pointer;
+}
+.att-picker select:focus { outline: none; border-color: #6366f1; }
+.att-add-btn {
+  margin-top: 6px; padding: 5px 14px; font-size: .8rem;
+  background: #6366f1; border: none; color: #fff; border-radius: 6px;
+  cursor: pointer; transition: background .15s;
+}
+.att-add-btn:hover { background: #4f52d3; }
+
+.att-empty { font-size: .8rem; color: var(--text-muted); font-style: italic; }
+
+/* badge on lesson row */
+.att-badge {
+  background: rgba(99,102,241,.2); border: 1px solid rgba(99,102,241,.35);
+  color: #a5b4fc; border-radius: 12px; padding: 2px 8px; font-size: .72rem;
+  margin-left: 4px;
+}
+
+/* toggle btn */
+.att-toggle-btn {
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+  color: #94a3b8; border-radius: 6px; padding: 4px 10px; font-size: .78rem;
+  cursor: pointer; white-space: nowrap; transition: background .15s;
+}
+.att-toggle-btn:hover, .att-toggle-btn.active { background: rgba(99,102,241,.2); color: #c4c7ff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container page-narrow">
+  <div class="page-header">
+    <div>
+      <a href="{{ url_for('admin_dashboard') }}" class="back-link">← Dashboard</a>
+      <h1 class="page-title">Lessons: {{ course.title }}</h1>
+      <p class="page-sub">{{ course.lessons|length }} lesson(s)</p>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <a href="{{ url_for('admin_course_library', course_id=course.id) }}" class="btn btn-outline" data-testid="link-course-library">📂 Content Library</a>
+      <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline" data-testid="link-preview-course">Preview Course</a>
+    </div>
+  </div>
+
+  <!-- Add Lesson Form -->
+  <div class="form-card">
+    <h2 class="form-card-title">Add New Lesson</h2>
+    <form method="POST" id="addLessonForm">
+      <input type="hidden" name="action" value="add"/>
+      <div class="form-group">
+        <label for="lesson_title" class="form-label">Lesson Title <span class="required">*</span></label>
+        <input type="text" id="lesson_title" name="lesson_title" class="form-input" placeholder="e.g. Introduction to Variables" required data-testid="input-lesson-title"/>
+      </div>
+      <div class="form-group">
+        <label for="lesson_video" class="form-label">Video URL</label>
+        <input type="url" id="lesson_video" name="lesson_video" class="form-input" placeholder="https://youtube.com/watch?v=…" data-testid="input-lesson-video"/>
+      </div>
+      <div class="form-group">
+        <label for="lesson_content" class="form-label">Content</label>
+        <textarea id="lesson_content" name="lesson_content" class="form-input form-textarea" rows="4" placeholder="Write the lesson text content here…" data-testid="input-lesson-content"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" data-testid="button-add-lesson">Add Lesson</button>
+    </form>
+  </div>
+
+  <!-- Lessons List -->
+  {% if course.lessons %}
+  <div class="admin-section">
+    <div class="admin-section-header">
+      <h2 class="admin-section-title">Current Lessons</h2>
+    </div>
+    <div class="lessons-admin-list">
+      {% for lesson in course.lessons %}
+      {% set att = lesson.get('attachments', {'item_ids': [], 'folder_ids': []}) %}
+      {% set att_count = att.get('item_ids', [])|length + att.get('folder_ids', [])|length %}
+      <div class="lessons-admin-item" id="lesson-{{ lesson.id }}" data-testid="lesson-row-{{ lesson.id }}" style="flex-direction:column;align-items:stretch;padding:0;">
+        <!-- Row header -->
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;">
+          <div class="lesson-admin-left" style="flex:1;min-width:0;">
+            <div class="lesson-num">{{ loop.index }}</div>
+            <div class="lesson-admin-info">
+              <span class="lesson-admin-title" data-testid="text-lesson-title-{{ lesson.id }}">{{ lesson.title }}</span>
+              {% if lesson.video_url %}<span class="lesson-admin-meta">▶ Video</span>{% endif %}
+              {% if lesson.content %}<span class="lesson-admin-meta">📄 Content</span>{% endif %}
+              {% if att_count > 0 %}
+              <span class="att-badge">📎 {{ att_count }} attachment{{ 's' if att_count != 1 }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <button class="att-toggle-btn {% if att_count > 0 %}active{% endif %}"
+                  onclick="toggleAttPanel('{{ lesson.id }}')"
+                  data-testid="button-attachments-{{ lesson.id }}">
+            📎 Attachments
+          </button>
+          <form method="POST" class="lesson-delete-form" style="margin:0;">
+            <input type="hidden" name="action" value="delete"/>
+            <input type="hidden" name="lesson_id" value="{{ lesson.id }}"/>
+            <button type="submit" class="action-btn action-delete" title="Remove lesson"
+                    onclick="return confirm('Remove this lesson?')"
+                    data-testid="button-delete-lesson-{{ lesson.id }}">🗑</button>
+          </form>
+        </div>
+
+        <!-- Attachment panel -->
+        <div class="lesson-att-panel {% if att_count > 0 %}open{% endif %}" id="att-panel-{{ lesson.id }}">
+
+          <!-- ── Attached items ─────────────────────── -->
+          <div class="att-col">
+            <div class="att-col-title">📄 Attached Items</div>
+            <div class="att-chips" id="chips-items-{{ lesson.id }}">
+              {% for iid in att.get('item_ids', []) %}
+                {% set itm = item_map.get(iid) %}
+                {% if itm %}
+                <span class="att-chip">
+                  {{ itm.title }}
+                  <form method="POST" action="{{ url_for('admin_lesson_attachments', course_id=course.id, lesson_id=lesson.id) }}" style="display:inline;margin:0;">
+                    <input type="hidden" name="action" value="detach_item"/>
+                    <input type="hidden" name="item_id" value="{{ iid }}"/>
+                    <button type="submit" class="att-chip-remove" title="Remove">✕</button>
+                  </form>
+                </span>
+                {% endif %}
+              {% else %}
+                <span class="att-empty">No items attached</span>
+              {% endfor %}
+            </div>
+
+            {% if lib_items %}
+            <form method="POST" action="{{ url_for('admin_lesson_attachments', course_id=course.id, lesson_id=lesson.id) }}" style="margin:0;">
+              <input type="hidden" name="action" value="attach_item"/>
+              <div class="att-picker">
+                <select name="item_id" data-testid="select-attach-item-{{ lesson.id }}">
+                  <option value="">— pick an item —</option>
+                  {% for itm in lib_items %}
+                  {% if itm.id not in att.get('item_ids', []) %}
+                  <option value="{{ itm.id }}">{{ itm.title }} ({{ itm.type }})</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              <button type="submit" class="att-add-btn" data-testid="button-add-item-{{ lesson.id }}">+ Attach Item</button>
+            </form>
+            {% else %}
+            <p class="att-empty" style="margin-top:6px;">No library items in this course yet.</p>
+            {% endif %}
+          </div>
+
+          <!-- ── Attached folders ────────────────────── -->
+          <div class="att-col">
+            <div class="att-col-title">📂 Attached Folders</div>
+            <div class="att-chips" id="chips-folders-{{ lesson.id }}">
+              {% for fid in att.get('folder_ids', []) %}
+                {% set fld = folder_map.get(fid) %}
+                {% if fld %}
+                <span class="att-chip">
+                  {{ fld.get('icon', '📁') }} {{ fld.name }}
+                  <form method="POST" action="{{ url_for('admin_lesson_attachments', course_id=course.id, lesson_id=lesson.id) }}" style="display:inline;margin:0;">
+                    <input type="hidden" name="action" value="detach_folder"/>
+                    <input type="hidden" name="folder_id" value="{{ fid }}"/>
+                    <button type="submit" class="att-chip-remove" title="Remove">✕</button>
+                  </form>
+                </span>
+                {% endif %}
+              {% else %}
+                <span class="att-empty">No folders attached</span>
+              {% endfor %}
+            </div>
+
+            {% if lib_folders %}
+            <form method="POST" action="{{ url_for('admin_lesson_attachments', course_id=course.id, lesson_id=lesson.id) }}" style="margin:0;">
+              <input type="hidden" name="action" value="attach_folder"/>
+              <div class="att-picker">
+                <select name="folder_id" data-testid="select-attach-folder-{{ lesson.id }}">
+                  <option value="">— pick a folder —</option>
+                  {% for fld in lib_folders %}
+                  {% if fld.id not in att.get('folder_ids', []) %}
+                  <option value="{{ fld.id }}">{{ fld.get('icon','📁') }} {{ fld.name }}</option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+              </div>
+              <button type="submit" class="att-add-btn" data-testid="button-add-folder-{{ lesson.id }}">+ Attach Folder</button>
+            </form>
+            {% else %}
+            <p class="att-empty" style="margin-top:6px;">No folders in this course library yet.</p>
+            {% endif %}
+          </div>
+
+        </div><!-- /att-panel -->
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📖</div>
+    <h3>No lessons yet</h3>
+    <p>Add your first lesson above to get started.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleAttPanel(id) {
+  const panel = document.getElementById('att-panel-' + id);
+  const btn   = panel.previousElementSibling.querySelector('.att-toggle-btn');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('active', open);
+}
+
+/* Auto-scroll to lesson anchor on page load (after attach/detach redirect) */
+window.addEventListener('load', () => {
+  if (location.hash) {
+    const el = document.querySelector(location.hash);
+    if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  }
+});
+</script>
+{% endblock %}

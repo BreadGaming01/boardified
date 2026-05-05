@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Coupon Codes{% endblock %}
+
+{% block extra_css %}
+<style>
+.coupon-page { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+.coupon-layout { display: grid; grid-template-columns: 340px 1fr; gap: 32px; align-items: start; }
+@media(max-width: 768px) { .coupon-layout { grid-template-columns: 1fr; } }
+
+.create-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; position: sticky; top: 80px; }
+.create-card h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 20px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 0.83rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+.type-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.type-toggle input { display: none; }
+.type-toggle label { flex: 1; text-align: center; padding: 8px; font-size: 0.85rem; cursor: pointer; color: var(--text-muted); background: transparent; border: none; transition: background .15s, color .15s; }
+.type-toggle input:checked + label { background: var(--primary); color: #fff; }
+
+.coupon-list { display: flex; flex-direction: column; gap: 16px; }
+.coupon-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+.coupon-card.inactive { opacity: 0.55; }
+.coupon-top { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.coupon-code-badge { font-family: monospace; font-size: 1.1rem; font-weight: 800; background: rgba(99,102,241,.12); color: var(--primary-light); border: 1px solid rgba(99,102,241,.25); border-radius: 8px; padding: 4px 14px; letter-spacing: 1px; }
+.coupon-type-badge { font-size: 0.75rem; font-weight: 700; border-radius: 20px; padding: 3px 10px; }
+.coupon-type-percent { background: rgba(99,102,241,.15); color: #a5b4fc; }
+.coupon-type-flat { background: rgba(245,158,11,.15); color: #fcd34d; }
+.coupon-status { font-size: 0.75rem; font-weight: 700; border-radius: 20px; padding: 3px 10px; }
+.coupon-status-active { background: rgba(16,185,129,.15); color: #6ee7b7; }
+.coupon-status-inactive { background: rgba(239,68,68,.12); color: #fca5a5; }
+.coupon-stats { display: flex; gap: 24px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; }
+.coupon-stats strong { color: var(--text); }
+.coupon-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.edit-section { display: none; background: var(--surface-2); border-radius: 10px; padding: 16px; margin-top: 16px; }
+.edit-section.open { display: block; }
+.edit-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+@media(max-width:640px){ .edit-row { grid-template-columns: 1fr 1fr; } }
+.btn-sm { padding: 6px 14px; font-size: 0.82rem; }
+.empty-coupons { text-align: center; padding: 48px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); color: var(--text-muted); }
+.progress-bar-wrap { height: 4px; background: var(--border); border-radius: 4px; margin-top: 4px; overflow: hidden; }
+.progress-bar { height: 100%; background: var(--primary); border-radius: 4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="coupon-page">
+  <div class="page-header" style="margin-bottom:32px;">
+    <div>
+      <h1 class="page-title">🎟 Coupon Codes</h1>
+      <p class="page-sub">Create and manage discount codes for your courses</p>
+    </div>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline">← Dashboard</a>
+  </div>
+
+  <div class="coupon-layout">
+    <!-- Create Form -->
+    <div class="create-card">
+      <h2>Create New Coupon</h2>
+      <form method="POST" action="{{ url_for('admin_coupons') }}">
+        <div class="form-group">
+          <label>Code</label>
+          <input type="text" name="code" class="form-input" placeholder="e.g. SAVE20" style="text-transform:uppercase" required data-testid="input-coupon-code"/>
+        </div>
+        <div class="form-group">
+          <label>Discount Type</label>
+          <div class="type-toggle">
+            <input type="radio" name="type" id="type-percent" value="percent" checked/>
+            <label for="type-percent">% Percent</label>
+            <input type="radio" name="type" id="type-flat" value="flat"/>
+            <label for="type-flat">$ Flat</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Discount Value</label>
+          <input type="number" name="value" class="form-input" placeholder="e.g. 20" min="0" max="100" step="0.01" required data-testid="input-coupon-value"/>
+          <div style="font-size:.75rem;color:var(--text-dim);margin-top:4px;">Use 100 for a fully free coupon</div>
+        </div>
+        <div class="form-group">
+          <label>Usage Limit <span style="opacity:.6;">(blank = unlimited)</span></label>
+          <input type="number" name="limit" class="form-input" placeholder="e.g. 50" min="1" step="1" data-testid="input-coupon-limit"/>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" data-testid="button-create-coupon">Create Coupon</button>
+      </form>
+    </div>
+
+    <!-- Coupon List -->
+    <div>
+      {% if coupons %}
+      <div class="coupon-list">
+        {% for coupon in coupons|sort(attribute='created_at', reverse=True) %}
+        <div class="coupon-card {% if not coupon.active %}inactive{% endif %}" data-testid="coupon-card-{{ coupon.id }}">
+          <div class="coupon-top">
+            <span class="coupon-code-badge" data-testid="text-coupon-code-{{ coupon.id }}">{{ coupon.code }}</span>
+            <span class="coupon-type-badge coupon-type-{{ coupon.type }}">
+              {% if coupon.type == 'percent' %}{{ coupon.value|int }}% off{% else %}-${{ "%.2f"|format(coupon.value) }}{% endif %}
+            </span>
+            <span class="coupon-status coupon-status-{{ 'active' if coupon.active else 'inactive' }}" data-testid="text-coupon-status-{{ coupon.id }}">
+              {{ '● Active' if coupon.active else '○ Inactive' }}
+            </span>
+          </div>
+
+          <div class="coupon-stats">
+            <div>Used <strong data-testid="text-coupon-usage-{{ coupon.id }}">{{ coupon.usage_count }}</strong>
+              {% if coupon.limit %}/ {{ coupon.limit }}{% else %}times{% endif %}
+            </div>
+            {% if coupon.limit %}
+            <div>
+              {% set pct = (coupon.usage_count / coupon.limit * 100)|int %}
+              <div class="progress-bar-wrap" style="width:120px;">
+                <div class="progress-bar" style="width:{{ pct }}%;"></div>
+              </div>
+            </div>
+            {% endif %}
+            <div>Limit: <strong>{% if coupon.limit %}{{ coupon.limit }}{% else %}Unlimited{% endif %}</strong></div>
+          </div>
+
+          <div class="coupon-actions">
+            <button class="btn btn-outline btn-sm" onclick="toggleEdit('{{ coupon.id }}')" data-testid="button-edit-{{ coupon.id }}">✏ Edit</button>
+            <form method="POST" action="{{ url_for('admin_coupon_toggle', coupon_id=coupon.id) }}" style="display:inline;">
+              <button type="submit" class="btn btn-sm {% if coupon.active %}btn-secondary{% else %}btn-outline{% endif %}" data-testid="button-toggle-{{ coupon.id }}">
+                {% if coupon.active %}⏸ Deactivate{% else %}▶ Activate{% endif %}
+              </button>
+            </form>
+            <form method="POST" action="{{ url_for('admin_coupon_delete', coupon_id=coupon.id) }}" style="display:inline;"
+                  onsubmit="return confirm('Delete coupon {{ coupon.code }}? This cannot be undone.');">
+              <button type="submit" class="btn btn-danger btn-sm" data-testid="button-delete-{{ coupon.id }}">🗑 Delete</button>
+            </form>
+          </div>
+
+          <!-- Edit Form -->
+          <div class="edit-section" id="edit-{{ coupon.id }}">
+            <form method="POST" action="{{ url_for('admin_coupon_edit', coupon_id=coupon.id) }}">
+              <div class="edit-row">
+                <div class="form-group" style="margin:0;">
+                  <label>Code</label>
+                  <input type="text" name="code" class="form-input" value="{{ coupon.code }}" style="text-transform:uppercase" required/>
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label>Type</label>
+                  <select name="type" class="form-input">
+                    <option value="percent" {% if coupon.type == 'percent' %}selected{% endif %}>Percent</option>
+                    <option value="flat" {% if coupon.type == 'flat' %}selected{% endif %}>Flat</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label>Value</label>
+                  <input type="number" name="value" class="form-input" value="{{ coupon.value }}" min="0" step="0.01" required/>
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label>Limit</label>
+                  <input type="number" name="limit" class="form-input" value="{{ coupon.limit or '' }}" min="1" step="1" placeholder="Unlimited"/>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                <button type="button" class="btn btn-outline btn-sm" onclick="toggleEdit('{{ coupon.id }}')">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-coupons">
+        <div style="font-size:2.5rem;margin-bottom:12px;">🎟</div>
+        <h3 style="margin-bottom:8px;">No coupons yet</h3>
+        <p>Create your first coupon code using the form on the left.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleEdit(id) {
+  const el = document.getElementById('edit-' + id);
+  el.classList.toggle('open');
+}
+document.querySelectorAll('input[name="code"]').forEach(inp => {
+  inp.addEventListener('input', () => { inp.value = inp.value.toUpperCase(); });
+});
+</script>
+{% endblock %}

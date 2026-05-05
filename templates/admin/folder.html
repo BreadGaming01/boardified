@@ -1,0 +1,494 @@
+{% extends "base.html" %}
+{% block title %}{{ folder.name }} — Library{% endblock %}
+
+{% block extra_css %}
+<style>
+.folder-page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px; margin-bottom: 32px;
+}
+.folder-breadcrumb {
+  display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;
+}
+.folder-breadcrumb a { color: var(--text-muted); transition: color 0.15s; }
+.folder-breadcrumb a:hover { color: var(--primary-light); }
+.folder-breadcrumb span { color: var(--text-dim); }
+.folder-page-title {
+  display: flex; align-items: center; gap: 12px; font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px;
+}
+.folder-page-icon { font-size: 2rem; }
+.folder-color-bar {
+  height: 4px; width: 48px; border-radius: 99px; background: var(--fcolor, #6366f1); margin-top: 6px;
+}
+.folder-page-actions { display: flex; gap: 10px; }
+
+.item-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;
+}
+.item-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden; transition: transform 0.15s, border-color 0.15s;
+  display: flex; flex-direction: column;
+}
+.item-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
+
+.item-preview {
+  width: 100%; height: 130px; background: rgba(255,255,255,0.03);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem; overflow: hidden; position: relative;
+}
+.item-preview img { width: 100%; height: 100%; object-fit: cover; }
+.item-preview video { width: 100%; height: 100%; object-fit: cover; }
+.play-overlay {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.35);
+}
+.play-btn {
+  width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.9);
+  display: flex; align-items: center; justify-content: center; font-size: 1.1rem; padding-left: 3px;
+}
+
+.item-body { padding: 14px; flex: 1; display: flex; flex-direction: column; }
+.item-type-badge {
+  display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 99px; margin-bottom: 8px; width: fit-content;
+}
+.type-youtube, .type-youtube_live { background: rgba(255,0,0,0.15); color: #f87171; }
+.type-video   { background: rgba(99,102,241,0.15); color: var(--primary-light); }
+.type-pdf     { background: rgba(239,68,68,0.12); color: #fca5a5; }
+.type-link    { background: rgba(59,130,246,0.15); color: #93c5fd; }
+.type-photo   { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+
+.item-title { font-size: 0.9rem; font-weight: 700; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+.item-desc  { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; flex: 1; margin-bottom: 12px; }
+.item-date  { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 10px; }
+
+.item-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.item-action-btn {
+  font-size: 0.75rem; padding: 5px 10px; border-radius: 6px; border: none;
+  cursor: pointer; font-weight: 600; transition: background 0.15s; text-decoration: none; display: inline-block;
+}
+.btn-view     { background: rgba(99,102,241,0.15); color: var(--primary-light); }
+.btn-view:hover { background: rgba(99,102,241,0.28); }
+.btn-move     { background: rgba(255,255,255,0.07); color: var(--text-muted); }
+.btn-move:hover { background: rgba(255,255,255,0.14); }
+.btn-del-item { background: rgba(239,68,68,0.15); color: #f87171; }
+.btn-del-item:hover { background: rgba(239,68,68,0.28); }
+
+.empty-folder { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+.empty-folder .ef-icon { font-size: 3.5rem; margin-bottom: 16px; }
+.empty-folder h3 { font-size: 1.2rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.empty-folder p  { font-size: 0.9rem; margin-bottom: 20px; }
+
+/* Viewer modal */
+.viewer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 300; display: none; align-items: center; justify-content: center; }
+.viewer-overlay.open { display: flex; }
+.viewer-box {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); width: 90vw; max-width: 860px; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.viewer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+}
+.viewer-header h3 { font-size: 1rem; font-weight: 700; }
+.viewer-close {
+  background: rgba(255,255,255,0.07); border: none; color: var(--text); border-radius: 8px;
+  padding: 6px 12px; cursor: pointer; font-size: 1rem; transition: background 0.15s;
+}
+.viewer-close:hover { background: rgba(255,255,255,0.15); }
+.viewer-body { padding: 20px; }
+.viewer-iframe { width: 100%; height: 450px; border: none; border-radius: 10px; background: #000; }
+.viewer-img    { width: 100%; max-height: 70vh; object-fit: contain; border-radius: 10px; }
+.viewer-pdf    { width: 100%; height: 70vh; border: none; border-radius: 10px; }
+.viewer-video  { width: 100%; border-radius: 10px; max-height: 70vh; }
+.viewer-link   { text-align: center; padding: 40px; }
+.viewer-link a { color: var(--primary-light); font-size: 1.1rem; font-weight: 600; word-break: break-all; }
+
+/* Add content modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 200; display: none; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 32px; width: 100%; max-width: 520px;
+  max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg);
+}
+.modal-box h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 24px; }
+.modal-field { margin-bottom: 18px; }
+.modal-label { display: block; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 7px; }
+.modal-input, .modal-select, .modal-textarea {
+  width: 100%; background: rgba(255,255,255,0.04); border: 1.5px solid var(--border);
+  border-radius: 9px; padding: 10px 14px; color: var(--text); font-size: 0.9rem;
+  outline: none; transition: border-color 0.2s;
+}
+.modal-input:focus, .modal-select:focus, .modal-textarea:focus { border-color: var(--primary); }
+.modal-textarea { resize: vertical; min-height: 70px; }
+.modal-select option { background: var(--bg-card); }
+.type-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.type-tab { padding: 7px 14px; border-radius: 8px; border: 1.5px solid var(--border); background: none; color: var(--text-muted); font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.type-tab.active, .type-tab:hover { border-color: var(--primary); background: rgba(99,102,241,0.12); color: var(--primary-light); }
+.type-fields { display: none; }
+.type-fields.show { display: block; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.btn-cancel { background: rgba(255,255,255,0.06); border: 1px solid var(--border); color: var(--text-muted); padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.btn-cancel:hover { background: rgba(255,255,255,0.1); }
+.btn-submit { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.btn-submit:hover { filter: brightness(1.1); }
+
+/* Move modal */
+.move-box { max-width: 380px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <div class="folder-page-header">
+    <div>
+      <div class="folder-breadcrumb">
+        <a href="{{ url_for('admin_library') }}">📂 Library</a>
+        {% if parent %}
+        <span>/</span>
+        <a href="{{ url_for('admin_folder', folder_id=parent.id) }}">{{ parent.icon }} {{ parent.name }}</a>
+        {% endif %}
+        <span>/</span>
+        <span>{{ folder.name }}</span>
+      </div>
+      <div class="folder-page-title">
+        <span class="folder-page-icon">{{ folder.icon }}</span>
+        {{ folder.name }}
+      </div>
+      <div class="folder-color-bar" style="--fcolor: {{ folder.color }}"></div>
+      {% if folder.description %}
+      <p style="margin-top:8px; color:var(--text-muted); font-size:0.88rem;">{{ folder.description }}</p>
+      {% endif %}
+    </div>
+    <div class="folder-page-actions">
+      <button class="btn btn-outline" onclick="openModal('moveModal')" style="display:none" id="btnMoveSelected">Move Selected</button>
+      <button class="btn btn-outline" onclick="openModal('subfolderModal')" data-testid="button-new-subfolder">📁 New Subfolder</button>
+      <button class="btn btn-primary" onclick="openModal('contentModal')" data-testid="button-add-content">+ Add Content</button>
+    </div>
+  </div>
+
+  {% if subfolders %}
+  <div style="margin-bottom:32px;">
+    <div class="section-title" style="font-size:1rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;color:var(--text);">
+      📁 Subfolders <span style="font-size:0.78rem;background:rgba(255,255,255,0.08);padding:2px 10px;border-radius:99px;color:var(--text-muted);font-weight:500;">{{ subfolders|length }}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
+      {% for sf in subfolders %}
+      <a href="{{ url_for('admin_folder', folder_id=sf.id) }}"
+         class="folder-card" style="--folder-color:{{ sf.color }};text-decoration:none;display:block;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;position:relative;overflow:hidden;transition:transform 0.18s,box-shadow 0.18s,border-color 0.18s;"
+         data-testid="card-subfolder-{{ sf.id }}">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:{{ sf.color }};"></div>
+        <div style="font-size:2rem;margin-bottom:10px;">{{ sf.icon }}</div>
+        <div style="font-weight:700;font-size:0.95rem;color:var(--text);margin-bottom:4px;">{{ sf.name }}</div>
+        {% if sf.description %}
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px;">{{ sf.description }}</div>
+        {% endif %}
+        <div style="font-size:0.75rem;color:var(--text-dim);">{{ sf.item_count }} item{{ 's' if sf.item_count != 1 else '' }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if items %}
+  <div class="item-grid" data-testid="grid-items">
+    {% for item in items %}
+    <div class="item-card" data-testid="card-item-{{ item.id }}">
+      <div class="item-preview">
+        {% if item.type in ('youtube', 'youtube_live') and item.url %}
+          {% set ytid = item.url | extract_yt_id %}
+          {% if ytid %}
+            <img src="https://img.youtube.com/vi/{{ ytid }}/mqdefault.jpg" alt="" onerror="this.parentElement.innerHTML='🎬'"/>
+            <div class="play-overlay">
+              <div class="play-btn" onclick="openViewer('{{ item.id }}', '{{ item.type }}', {{ item.url | tojson }}, '', {{ item.title | tojson }})">▶</div>
+            </div>
+          {% else %}
+            <span>🎬</span>
+          {% endif %}
+        {% elif item.type == 'photo' and item.file_path %}
+          <img src="{{ url_for('static', filename=item.file_path) }}" alt="{{ item.title }}"
+               onclick="openViewer('{{ item.id }}', 'photo', '', '{{ url_for('static', filename=item.file_path) }}', {{ item.title | tojson }})"/>
+        {% elif item.type == 'video' %}
+          {% if item.file_path %}
+            <span>📹</span>
+            <div class="play-overlay">
+              <div class="play-btn" onclick="openViewer('{{ item.id }}', 'video', '{{ item.url or '' }}', '{{ url_for('static', filename=item.file_path) }}', {{ item.title | tojson }})">▶</div>
+            </div>
+          {% elif item.url %}
+            <span>📹</span>
+            <div class="play-overlay">
+              <div class="play-btn" onclick="openViewer('{{ item.id }}', 'video_url', {{ item.url | tojson }}, '', {{ item.title | tojson }})">▶</div>
+            </div>
+          {% else %}
+            <span>📹</span>
+          {% endif %}
+        {% elif item.type == 'pdf' %}
+          <span>📄</span>
+        {% elif item.type == 'link' %}
+          <span>🔗</span>
+        {% else %}
+          <span>📎</span>
+        {% endif %}
+      </div>
+      <div class="item-body">
+        <span class="item-type-badge type-{{ item.type }}">{{ item.type.replace('_', ' ') }}</span>
+        <div class="item-title" data-testid="text-item-title-{{ item.id }}">{{ item.title }}</div>
+        {% if item.description %}
+        <div class="item-desc">{{ item.description }}</div>
+        {% endif %}
+        <div class="item-date">Added {{ item.created_at[:10] }}</div>
+        <div class="item-actions">
+          {% if item.type in ('youtube', 'youtube_live') and item.url %}
+          <button class="item-action-btn btn-view"
+                  onclick="openViewer('{{ item.id }}', '{{ item.type }}', {{ item.url | tojson }}, '', {{ item.title | tojson }})"
+                  data-testid="button-view-item-{{ item.id }}">▶ Play</button>
+          {% elif item.type == 'photo' and item.file_path %}
+          <button class="item-action-btn btn-view"
+                  onclick="openViewer('{{ item.id }}', 'photo', '', '{{ url_for('static', filename=item.file_path) }}', {{ item.title | tojson }})">👁 View</button>
+          {% elif item.type == 'pdf' and item.file_path %}
+          <button class="item-action-btn btn-view"
+                  onclick="openViewer('{{ item.id }}', 'pdf', '', '{{ url_for('static', filename=item.file_path) }}', {{ item.title | tojson }})">📄 Open</button>
+          {% elif item.type == 'video' and item.file_path %}
+          <button class="item-action-btn btn-view"
+                  onclick="openViewer('{{ item.id }}', 'video', '', '{{ url_for('static', filename=item.file_path) }}', {{ item.title | tojson }})">▶ Play</button>
+          {% elif item.type == 'link' and item.url %}
+          <a href="{{ item.url }}" target="_blank" class="item-action-btn btn-view" data-testid="button-open-link-{{ item.id }}">🔗 Open</a>
+          {% endif %}
+          <button class="item-action-btn btn-move"
+                  onclick="openMoveModal('{{ item.id }}')"
+                  data-testid="button-move-item-{{ item.id }}">↗ Move</button>
+          <form method="POST" action="{{ url_for('admin_delete_content', item_id=item.id) }}"
+                onsubmit="return confirm('Delete this item?')" style="display:inline">
+            <button type="submit" class="item-action-btn btn-del-item" data-testid="button-delete-item-{{ item.id }}">🗑</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-folder">
+    <div class="ef-icon">{{ folder.icon }}</div>
+    <h3>This folder is empty</h3>
+    <p>Add videos, PDFs, links, photos and more to organise your content.</p>
+    <button class="btn btn-primary" onclick="openModal('contentModal')">+ Add Content</button>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- New Subfolder Modal -->
+<div class="modal-overlay" id="subfolderModal">
+  <div class="modal-box" style="max-width:420px;">
+    <h2>📁 New Subfolder</h2>
+    <form method="POST" action="{{ url_for('admin_create_folder') }}">
+      <input type="hidden" name="parent_folder_id" value="{{ folder.id }}"/>
+      <div class="modal-field">
+        <label class="modal-label">Folder Name *</label>
+        <input type="text" name="name" class="modal-input" placeholder="e.g. Week 1 Materials" required data-testid="input-subfolder-name"/>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Description</label>
+        <textarea name="description" class="modal-textarea" placeholder="Optional..." data-testid="input-subfolder-description"></textarea>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Color</label>
+        <input type="color" name="color" value="{{ folder.color }}" class="modal-input" style="height:44px;padding:4px 8px;" data-testid="input-subfolder-color"/>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Icon (emoji)</label>
+        <input type="text" name="icon" class="modal-input" value="📁" maxlength="4" data-testid="input-subfolder-icon"/>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('subfolderModal')">Cancel</button>
+        <button type="submit" class="btn-submit" data-testid="button-subfolder-submit">Create Subfolder</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add Content Modal -->
+<div class="modal-overlay" id="contentModal">
+  <div class="modal-box">
+    <h2>➕ Add Content</h2>
+    <form method="POST" action="{{ url_for('admin_add_content') }}" enctype="multipart/form-data">
+      <input type="hidden" name="type" id="contentTypeInput" value="youtube"/>
+      <input type="hidden" name="folder_id" value="{{ folder.id }}"/>
+
+      <div class="modal-field">
+        <label class="modal-label">Content Type</label>
+        <div class="type-tabs">
+          <button type="button" class="type-tab active" onclick="setType('youtube', this)">🎬 YouTube</button>
+          <button type="button" class="type-tab" onclick="setType('youtube_live', this)">📡 YT Live/Unlisted</button>
+          <button type="button" class="type-tab" onclick="setType('video', this)">📹 Video Upload</button>
+          <button type="button" class="type-tab" onclick="setType('pdf', this)">📄 PDF</button>
+          <button type="button" class="type-tab" onclick="setType('photo', this)">🖼️ Photo</button>
+          <button type="button" class="type-tab" onclick="setType('link', this)">🔗 Link</button>
+        </div>
+      </div>
+
+      <div class="modal-field">
+        <label class="modal-label">Title *</label>
+        <input type="text" name="title" class="modal-input" placeholder="Give this content a name" required data-testid="input-content-title"/>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Description</label>
+        <textarea name="description" class="modal-textarea" placeholder="Optional notes..." data-testid="input-content-description"></textarea>
+      </div>
+
+      <div class="type-fields show" id="fields-youtube">
+        <div class="modal-field">
+          <label class="modal-label">YouTube URL *</label>
+          <input type="url" name="url" class="modal-input" placeholder="https://www.youtube.com/watch?v=..."/>
+        </div>
+      </div>
+      <div class="type-fields" id="fields-youtube_live">
+        <div class="modal-field">
+          <label class="modal-label">YouTube Live / Unlisted URL *</label>
+          <input type="url" name="url" class="modal-input" placeholder="https://www.youtube.com/live/..."/>
+        </div>
+      </div>
+      <div class="type-fields" id="fields-link">
+        <div class="modal-field">
+          <label class="modal-label">URL *</label>
+          <input type="url" name="url" class="modal-input" placeholder="https://example.com"/>
+        </div>
+      </div>
+      <div class="type-fields" id="fields-video">
+        <div class="modal-field">
+          <label class="modal-label">Video File (mp4, webm, mov, avi, mkv)</label>
+          <input type="file" name="file" class="modal-input" accept=".mp4,.webm,.mov,.avi,.mkv"/>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Or paste Video URL</label>
+          <input type="url" name="url" class="modal-input" placeholder="https://..."/>
+        </div>
+      </div>
+      <div class="type-fields" id="fields-pdf">
+        <div class="modal-field">
+          <label class="modal-label">PDF File</label>
+          <input type="file" name="file" class="modal-input" accept=".pdf"/>
+        </div>
+      </div>
+      <div class="type-fields" id="fields-photo">
+        <div class="modal-field">
+          <label class="modal-label">Image File (jpg, png, gif, webp)</label>
+          <input type="file" name="file" class="modal-input" accept=".jpg,.jpeg,.png,.gif,.webp"/>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('contentModal')">Cancel</button>
+        <button type="submit" class="btn-submit" data-testid="button-add-content-submit">Add Content</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Move Item Modal -->
+<div class="modal-overlay" id="moveModal">
+  <div class="modal-box move-box">
+    <h2>↗ Move to Folder</h2>
+    <form method="POST" id="moveForm" action="">
+      <div class="modal-field">
+        <label class="modal-label">Destination Folder</label>
+        <select name="folder_id" class="modal-select" data-testid="select-move-folder">
+          <option value="">— Uncategorized —</option>
+          {% for f in all_folders %}
+          {% if f.id != folder.id %}
+          <option value="{{ f.id }}">{{ f.icon }} {{ f.name }}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('moveModal')">Cancel</button>
+        <button type="submit" class="btn-submit">Move</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Viewer Modal -->
+<div class="viewer-overlay" id="viewerModal">
+  <div class="viewer-box">
+    <div class="viewer-header">
+      <h3 id="viewerTitle"></h3>
+      <button class="viewer-close" onclick="closeViewer()">✕</button>
+    </div>
+    <div class="viewer-body" id="viewerBody"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+const typeAllIds = ['youtube','youtube_live','video','pdf','photo','link'];
+function setType(type, btn) {
+  document.getElementById('contentTypeInput').value = type;
+  document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  typeAllIds.forEach(t => {
+    const el = document.getElementById('fields-' + t);
+    if (el) el.classList.toggle('show', t === type);
+  });
+}
+
+function openMoveModal(itemId) {
+  document.getElementById('moveForm').action = '/admin/library/content/' + itemId + '/move';
+  openModal('moveModal');
+}
+
+function extractYTId(url) {
+  const patterns = [/youtu\.be\/([^?&\s]+)/, /[?&]v=([^?&\s]+)/, /youtube\.com\/live\/([^?&\s]+)/, /youtube\.com\/embed\/([^?&\s]+)/];
+  for (const p of patterns) { const m = url.match(p); if (m) return m[1]; }
+  return null;
+}
+
+function openViewer(id, type, url, filePath, title) {
+  document.getElementById('viewerTitle').textContent = title;
+  const body = document.getElementById('viewerBody');
+  let html = '';
+  if (type === 'youtube' || type === 'youtube_live') {
+    const ytId = extractYTId(url);
+    if (ytId) {
+      html = `<iframe class="viewer-iframe" src="https://www.youtube.com/embed/${ytId}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    } else {
+      html = `<div class="viewer-link"><a href="${url}" target="_blank">${url}</a></div>`;
+    }
+  } else if (type === 'photo') {
+    html = `<img class="viewer-img" src="${filePath}" alt="${title}"/>`;
+  } else if (type === 'pdf') {
+    openPdfViewer(filePath, title);
+    return;
+  } else if (type === 'video') {
+    const src = filePath || url;
+    html = `<video class="viewer-video" controls autoplay src="${src}"></video>`;
+  } else if (type === 'video_url') {
+    html = `<video class="viewer-video" controls autoplay src="${url}"></video>`;
+  } else if (type === 'link') {
+    html = `<div class="viewer-link"><p style="color:var(--text-muted);margin-bottom:12px">External link:</p><a href="${url}" target="_blank">${url}</a></div>`;
+  }
+  body.innerHTML = html;
+  document.getElementById('viewerModal').classList.add('open');
+}
+
+function closeViewer() {
+  document.getElementById('viewerBody').innerHTML = '';
+  document.getElementById('viewerModal').classList.remove('open');
+}
+document.getElementById('viewerModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('viewerModal')) closeViewer();
+});
+</script>
+{% endblock %}

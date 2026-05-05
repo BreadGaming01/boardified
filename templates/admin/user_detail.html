@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}{{ user.username }} — User Detail{% endblock %}
+
+{% block extra_css %}
+<style>
+.user-header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px; margin-bottom: 32px;
+}
+.user-profile {
+  display: flex; align-items: center; gap: 16px;
+}
+.user-avatar-lg {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; font-weight: 800; color: #fff; flex-shrink: 0;
+}
+.user-info h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.3px; }
+.user-info p  { color: var(--text-muted); font-size: 0.88rem; margin-top: 3px; }
+.user-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.meta-chip {
+  font-size: 0.74rem; font-weight: 700; padding: 3px 10px;
+  border-radius: 99px; border: 1px solid var(--border);
+  background: rgba(255,255,255,0.05); color: var(--text-muted);
+}
+
+.section-head {
+  font-size: 1.1rem; font-weight: 700; margin-bottom: 18px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-head .cnt {
+  font-size: 0.78rem; background: rgba(255,255,255,0.08);
+  padding: 2px 10px; border-radius: 99px; color: var(--text-muted); font-weight: 500;
+}
+
+.batch-card {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px 20px; margin-bottom: 12px;
+  transition: border-color 0.15s;
+}
+.batch-card:hover { border-color: rgba(255,255,255,0.15); }
+.batch-thumb {
+  width: 56px; height: 56px; border-radius: 10px; object-fit: cover;
+  flex-shrink: 0; background: rgba(255,255,255,0.05);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; overflow: hidden;
+}
+.batch-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+.batch-info { flex: 1; min-width: 0; }
+.batch-title { font-weight: 700; font-size: 0.98rem; color: var(--text); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.batch-meta  { font-size: 0.78rem; color: var(--text-muted); }
+.batch-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+
+.btn-revoke {
+  background: rgba(239,68,68,0.12); color: #f87171;
+  border: 1px solid rgba(239,68,68,0.2); padding: 7px 14px;
+  border-radius: 8px; font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; transition: background 0.15s; white-space: nowrap;
+}
+.btn-revoke:hover { background: rgba(239,68,68,0.24); }
+
+.empty-batches {
+  text-align: center; padding: 60px 20px; color: var(--text-muted);
+}
+.empty-batches .ei { font-size: 3rem; margin-bottom: 14px; }
+.empty-batches h3 { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+
+/* Revoke confirm modal */
+.modal-overlay-r { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: center; justify-content: center; }
+.modal-overlay-r.open { display: flex; }
+.modal-box-r {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 32px; width: 100%; max-width: 420px;
+  box-shadow: var(--shadow-lg); text-align: center;
+}
+.modal-box-r .mi { font-size: 2.5rem; margin-bottom: 12px; }
+.modal-box-r h3 { font-size: 1.2rem; font-weight: 800; margin-bottom: 8px; }
+.modal-box-r p  { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 24px; line-height: 1.6; }
+.modal-acts { display: flex; gap: 10px; justify-content: center; }
+.btn-cancel-r {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+  color: var(--text-muted); padding: 10px 22px; border-radius: 8px;
+  font-weight: 600; cursor: pointer; font-size: 0.88rem;
+}
+.btn-cancel-r:hover { background: rgba(255,255,255,0.1); }
+.btn-confirm-r {
+  background: #dc2626; color: #fff; border: none;
+  padding: 10px 22px; border-radius: 8px; font-weight: 700;
+  cursor: pointer; font-size: 0.88rem;
+}
+.btn-confirm-r:hover { background: #b91c1c; }
+
+.btn-grant {
+  background: rgba(99,102,241,0.15); color: #a5b4fc;
+  border: 1px solid rgba(99,102,241,0.3); padding: 9px 18px;
+  border-radius: 8px; font-size: 0.84rem; font-weight: 700;
+  cursor: pointer; transition: background 0.15s; white-space: nowrap;
+}
+.btn-grant:hover { background: rgba(99,102,241,0.28); }
+
+/* Grant modal */
+.modal-overlay-g { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: none; align-items: center; justify-content: center; }
+.modal-overlay-g.open { display: flex; }
+.modal-box-g {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 32px; width: 100%; max-width: 460px;
+  box-shadow: var(--shadow-lg);
+}
+.modal-box-g h3 { font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; }
+.modal-box-g p  { color: var(--text-muted); font-size: 0.86rem; margin-bottom: 22px; line-height: 1.5; }
+.modal-field label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+.modal-field select {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  color: var(--text); border-radius: 10px; padding: 11px 14px;
+  font-size: 0.9rem; font-family: inherit; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; cursor: pointer;
+}
+.modal-field select:focus { outline: none; border-color: var(--primary); }
+.modal-acts-g { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; }
+.btn-grant-confirm {
+  background: var(--primary); color: #fff; border: none;
+  padding: 10px 22px; border-radius: 8px; font-weight: 700;
+  cursor: pointer; font-size: 0.88rem; transition: opacity 0.15s;
+}
+.btn-grant-confirm:hover { opacity: 0.88; }
+.no-courses-note { color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 12px 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <div class="user-header">
+    <div class="user-profile">
+      <div class="user-avatar-lg">{{ user.username[0].upper() }}</div>
+      <div class="user-info">
+        <h2 data-testid="text-user-name">{{ user.username }}</h2>
+        <p data-testid="text-user-email">{{ user.email }}</p>
+        <div class="user-meta">
+          <span class="meta-chip role-{{ user.role }}">{{ user.role }}</span>
+          <span class="meta-chip">Joined {{ user.created_at[:10] }}</span>
+          <span class="meta-chip">{{ enrollments|length }} batch{{ 'es' if enrollments|length != 1 else '' }}</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button class="btn-grant" onclick="openGrantModal()" data-testid="button-grant-access">+ Grant Access</button>
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline" data-testid="link-back-dashboard">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <div class="section-head">
+    📋 Enrolled Batches
+    <span class="cnt">{{ enrollments|length }}</span>
+  </div>
+
+  {% if enrollments %}
+  <div data-testid="list-enrollments">
+    {% for e in enrollments %}
+    <div class="batch-card" data-testid="card-enrollment-{{ e.purchase.id }}">
+      <div class="batch-thumb">
+        {% if e.course.thumbnail %}
+          <img src="{{ e.course.thumbnail }}" alt="{{ e.course.title }}"/>
+        {% else %}
+          📚
+        {% endif %}
+      </div>
+      <div class="batch-info">
+        <div class="batch-title" data-testid="text-batch-title-{{ e.purchase.id }}">{{ e.course.title }}</div>
+        <div class="batch-meta">
+          Enrolled {{ e.purchase.created_at[:10] }}
+          &nbsp;·&nbsp; ₹{{ "%.0f"|format(e.purchase.amount) }}
+          {% if e.course.category %}&nbsp;·&nbsp; {{ e.course.category }}{% endif %}
+        </div>
+      </div>
+      <div class="batch-actions">
+        <a href="{{ url_for('course_detail', course_id=e.course.id) }}" class="action-btn action-view"
+           title="View Course" data-testid="link-view-course-{{ e.purchase.id }}" target="_blank">👁 View</a>
+        <button class="btn-revoke" data-testid="button-revoke-{{ e.purchase.id }}"
+                onclick="confirmRevoke('{{ e.purchase.id }}', '{{ e.course.title|e }}')">
+          🚫 Revoke
+        </button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-batches" data-testid="empty-batches">
+    <div class="ei">📋</div>
+    <h3>No batches enrolled</h3>
+    <p>This user hasn't purchased any courses yet.</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Grant Access Modal -->
+<div class="modal-overlay-g" id="grantModal">
+  <div class="modal-box-g">
+    <h3>🎓 Grant Course Access</h3>
+    <p>Instantly grant <strong>{{ user.username }}</strong> access to a course at no cost.</p>
+    {% if available_courses %}
+    <form method="POST" action="{{ url_for('admin_grant_access', user_id=user.id) }}">
+      <div class="modal-field">
+        <label>Select Course</label>
+        <select name="course_id" required data-testid="select-grant-course">
+          <option value="">— Choose a course —</option>
+          {% for c in available_courses %}
+          <option value="{{ c.id }}">{{ c.title }}{% if c.price %} (₹{{ "%.0f"|format(c.price) }}){% endif %}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="modal-acts-g">
+        <button type="button" class="btn-cancel-r" onclick="closeGrantModal()">Cancel</button>
+        <button type="submit" class="btn-grant-confirm" data-testid="button-confirm-grant">Grant Access</button>
+      </div>
+    </form>
+    {% else %}
+    <p class="no-courses-note">This user is already enrolled in all available courses.</p>
+    <div class="modal-acts-g">
+      <button type="button" class="btn-cancel-r" onclick="closeGrantModal()">Close</button>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Revoke Confirm Modal -->
+<div class="modal-overlay-r" id="revokeModal">
+  <div class="modal-box-r">
+    <div class="mi">⚠️</div>
+    <h3>Revoke Access?</h3>
+    <p id="revokeModalText">Are you sure you want to revoke this user's access to the course?</p>
+    <div class="modal-acts">
+      <button class="btn-cancel-r" onclick="closeRevokeModal()" data-testid="button-cancel-revoke">Cancel</button>
+      <form id="revokeForm" method="POST" style="display:inline">
+        <button type="submit" class="btn-confirm-r" data-testid="button-confirm-revoke">Revoke Access</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openGrantModal() {
+  document.getElementById('grantModal').classList.add('open');
+}
+function closeGrantModal() {
+  document.getElementById('grantModal').classList.remove('open');
+}
+document.getElementById('grantModal').addEventListener('click', function(e) {
+  if (e.target === this) closeGrantModal();
+});
+
+function confirmRevoke(purchaseId, courseTitle) {
+  document.getElementById('revokeModalText').textContent =
+    `Remove "${courseTitle}" from this user's account? They will lose access immediately.`;
+  document.getElementById('revokeForm').action = '/admin/purchases/' + purchaseId + '/revoke';
+  document.getElementById('revokeModal').classList.add('open');
+}
+function closeRevokeModal() {
+  document.getElementById('revokeModal').classList.remove('open');
+}
+document.getElementById('revokeModal').addEventListener('click', function(e) {
+  if (e.target === this) closeRevokeModal();
+});
+</script>
+{% endblock %}

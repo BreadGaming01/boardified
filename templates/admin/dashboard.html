@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Admin Dashboard</h1>
+      <p class="page-sub">Manage your courses, users, revenue and content library</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="{{ url_for('admin_library') }}" class="btn btn-outline" data-testid="link-library">📂 Library</a>
+      <a href="{{ url_for('admin_coupons') }}" class="btn btn-outline" data-testid="link-coupons">🎟 Coupons</a>
+      <a href="{{ url_for('admin_create_course') }}" class="btn btn-primary" data-testid="link-create-course">+ New Course</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card" data-testid="stat-courses">
+      <div class="stat-card-icon">📚</div>
+      <div class="stat-card-info">
+        <span class="stat-card-value" data-testid="text-total-courses">{{ courses|length }}</span>
+        <span class="stat-card-label">Total Courses</span>
+      </div>
+    </div>
+    <div class="stat-card" data-testid="stat-users">
+      <div class="stat-card-icon">👥</div>
+      <div class="stat-card-info">
+        <span class="stat-card-value" data-testid="text-total-users">{{ users|length }}</span>
+        <span class="stat-card-label">Registered Users</span>
+      </div>
+    </div>
+    <div class="stat-card" data-testid="stat-sales">
+      <div class="stat-card-icon">🛒</div>
+      <div class="stat-card-info">
+        <span class="stat-card-value" data-testid="text-total-sales">{{ purchases|length }}</span>
+        <span class="stat-card-label">Total Sales</span>
+      </div>
+    </div>
+    <div class="stat-card stat-card-highlight" data-testid="stat-revenue">
+      <div class="stat-card-icon">💰</div>
+      <div class="stat-card-info">
+        <span class="stat-card-value" data-testid="text-total-revenue">${{ "%.2f"|format(total_revenue) }}</span>
+        <span class="stat-card-label">Total Revenue</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Courses Table -->
+  <div class="admin-section">
+    <div class="admin-section-header">
+      <h2 class="admin-section-title">Courses</h2>
+      <span class="count-badge">{{ courses|length }}</span>
+    </div>
+    {% if courses %}
+    <div class="table-wrap">
+      <table class="admin-table" data-testid="table-courses">
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th>Category</th>
+            <th>Level</th>
+            <th>Lessons</th>
+            <th>Price</th>
+            <th>Sales</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for course in courses %}
+          {% set course_sales = purchases | selectattr('course_id', 'equalto', course.id) | list | length %}
+          <tr data-testid="row-course-{{ course.id }}">
+            <td>
+              <div class="table-course-info">
+                {% if course.thumbnail %}
+                  <img src="{{ course.thumbnail }}" class="table-thumb" alt=""/>
+                {% else %}
+                  <div class="table-thumb-placeholder">📚</div>
+                {% endif %}
+                <div>
+                  <span class="table-course-title" data-testid="text-course-title-{{ course.id }}">{{ course.title }}</span>
+                  <span class="table-course-instructor">by {{ course.instructor }}</span>
+                </div>
+              </div>
+            </td>
+            <td><span class="table-tag">{{ course.category or '—' }}</span></td>
+            <td><span class="level-badge level-{{ course.level | lower }}">{{ course.level }}</span></td>
+            <td>{{ course.lessons|length }}</td>
+            <td>
+              {% if course.price == 0 %}
+                <span class="price-free">Free</span>
+              {% else %}
+                <strong data-testid="text-price-{{ course.id }}">${{ "%.2f"|format(course.price) }}</strong>
+              {% endif %}
+            </td>
+            <td>{{ course_sales }}</td>
+            <td>
+              <div class="table-actions">
+                <a href="{{ url_for('course_detail', course_id=course.id) }}" class="action-btn action-view" title="View" data-testid="link-view-{{ course.id }}">👁</a>
+                <a href="{{ url_for('admin_edit_course', course_id=course.id) }}" class="action-btn action-edit" title="Edit" data-testid="link-edit-{{ course.id }}">✏️</a>
+                <a href="{{ url_for('admin_lessons', course_id=course.id) }}" class="action-btn action-lessons" title="Lessons" data-testid="link-lessons-{{ course.id }}">📖</a>
+                <a href="{{ url_for('admin_course_library', course_id=course.id) }}" class="action-btn" title="Content Library" data-testid="link-library-{{ course.id }}" style="background:rgba(99,102,241,0.15);color:var(--primary-light)">📂</a>
+                <button class="action-btn action-delete" title="Delete" data-testid="button-delete-{{ course.id }}"
+                        onclick="confirmDelete('{{ course.id }}', '{{ course.title }}')">🗑</button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📚</div>
+      <h3>No courses yet</h3>
+      <a href="{{ url_for('admin_create_course') }}" class="btn btn-primary" data-testid="link-create-first">Create Your First Course</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Users Table -->
+  <div class="admin-section">
+    <div class="admin-section-header">
+      <h2 class="admin-section-title">Recent Users</h2>
+      <span class="count-badge">{{ users|length }}</span>
+    </div>
+    {% if users %}
+    <div class="table-wrap">
+      <table class="admin-table" data-testid="table-users">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr data-testid="row-user-{{ user.id }}">
+            <td>
+              <div class="table-user-info">
+                <div class="table-avatar">{{ user.username[0].upper() }}</div>
+                <span data-testid="text-username-{{ user.id }}">{{ user.username }}</span>
+              </div>
+            </td>
+            <td class="text-muted">{{ user.email }}</td>
+            <td><span class="role-badge role-{{ user.role }}">{{ user.role }}</span></td>
+            <td class="text-muted">{{ user.created_at[:10] }}</td>
+            <td>
+              <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" class="action-btn action-view" title="View Batches" data-testid="link-user-detail-{{ user.id }}" style="font-size:0.78rem;padding:5px 10px;">📋 Batches</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal-overlay hidden" id="deleteModal">
+  <div class="modal">
+    <div class="modal-icon">⚠️</div>
+    <h3 class="modal-title">Delete Course?</h3>
+    <p class="modal-body" id="deleteModalText"></p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()" data-testid="button-cancel-delete">Cancel</button>
+      <form id="deleteForm" method="POST">
+        <button type="submit" class="btn btn-danger" data-testid="button-confirm-delete">Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(courseId, title) {
+  document.getElementById('deleteModalText').textContent = `Are you sure you want to delete "${title}"? This cannot be undone.`;
+  document.getElementById('deleteForm').action = `/admin/courses/${courseId}/delete`;
+  document.getElementById('deleteModal').classList.remove('hidden');
+}
+function closeModal() {
+  document.getElementById('deleteModal').classList.add('hidden');
+}
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+</script>
+{% endblock %}

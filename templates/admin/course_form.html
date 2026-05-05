@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}{% if course %}Edit Course{% else %}New Course{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-container page-narrow">
+  <div class="page-header">
+    <div>
+      <a href="{{ url_for('admin_dashboard') }}" class="back-link">← Back to Dashboard</a>
+      <h1 class="page-title">{% if course %}Edit Course{% else %}Create New Course{% endif %}</h1>
+    </div>
+  </div>
+
+  <form method="POST" class="form-card" id="courseForm">
+    <div class="form-grid">
+      <!-- Left column -->
+      <div class="form-col">
+        <div class="form-group">
+          <label for="title" class="form-label">Course Title <span class="required">*</span></label>
+          <input type="text" id="title" name="title" class="form-input"
+                 value="{{ course.title if course else '' }}"
+                 placeholder="e.g. Complete Python Bootcamp"
+                 required data-testid="input-title"/>
+        </div>
+
+        <div class="form-group">
+          <label for="description" class="form-label">Description <span class="required">*</span></label>
+          <textarea id="description" name="description" class="form-input form-textarea"
+                    placeholder="Describe what students will learn…"
+                    required rows="5" data-testid="input-description">{{ course.description if course else '' }}</textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="category" class="form-label">Category</label>
+            <input type="text" id="category" name="category" class="form-input"
+                   value="{{ course.category if course else '' }}"
+                   placeholder="e.g. Programming" list="categoryList" data-testid="input-category"/>
+            <datalist id="categoryList">
+              <option value="Programming"/>
+              <option value="Design"/>
+              <option value="Business"/>
+              <option value="Marketing"/>
+              <option value="Data Science"/>
+              <option value="Photography"/>
+              <option value="Music"/>
+              <option value="Language"/>
+            </datalist>
+          </div>
+
+          <div class="form-group">
+            <label for="level" class="form-label">Level</label>
+            <select id="level" name="level" class="form-input form-select" data-testid="select-level">
+              <option value="Beginner" {% if course and course.level == 'Beginner' %}selected{% endif %}>Beginner</option>
+              <option value="Intermediate" {% if course and course.level == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+              <option value="Advanced" {% if course and course.level == 'Advanced' %}selected{% endif %}>Advanced</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="form-col">
+        <div class="form-group">
+          <label for="price" class="form-label">Price (CFB / USD) <span class="required">*</span></label>
+          <div class="input-wrap">
+            <span class="input-icon input-icon-text">$</span>
+            <input type="number" id="price" name="price" class="form-input input-padded"
+                   value="{{ course.price if course else '0' }}"
+                   min="0" step="0.01" placeholder="0.00"
+                   required data-testid="input-price"/>
+          </div>
+          <p class="form-hint">Set 0 for a free course. Payment is processed via CFB gateway.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="thumbnail" class="form-label">Thumbnail URL</label>
+          <input type="url" id="thumbnail" name="thumbnail" class="form-input"
+                 value="{{ course.thumbnail if course else '' }}"
+                 placeholder="https://example.com/image.jpg" data-testid="input-thumbnail"/>
+          <div class="thumb-preview-wrap" id="thumbPreview" style="{% if not course or not course.thumbnail %}display:none{% endif %}">
+            <img id="thumbImg" src="{{ course.thumbnail if course and course.thumbnail else '' }}" alt="Preview" class="thumb-preview-img"/>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline" data-testid="button-cancel">Cancel</a>
+          <button type="submit" class="btn btn-primary" data-testid="button-submit-course">
+            {% if course %}Save Changes{% else %}Create Course{% endif %}
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const thumbInput = document.getElementById('thumbnail');
+const thumbPreview = document.getElementById('thumbPreview');
+const thumbImg = document.getElementById('thumbImg');
+
+thumbInput.addEventListener('input', function() {
+  const val = this.value.trim();
+  if (val) {
+    thumbImg.src = val;
+    thumbPreview.style.display = 'block';
+  } else {
+    thumbPreview.style.display = 'none';
+  }
+});
+thumbImg.addEventListener('error', function() {
+  thumbPreview.style.display = 'none';
+});
+</script>
+{% endblock %}
