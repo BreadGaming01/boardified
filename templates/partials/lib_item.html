@@ -1,0 +1,45 @@
+<div class="lib-item-card" data-testid="card-lib-item-{{ item.id }}" data-search="{{ (item.title ~ ' ' ~ (item.description or '') ~ ' ' ~ item.type)|lower }}">
+  <div class="lib-item-preview"
+       {% if item.type in ('youtube', 'youtube_live') and item.url %}
+       onclick='openMediaPlayer({{ item.url|tojson }}, {{ item.title|tojson }})'
+       {% elif item.type == 'video' and (item.file_path or item.url) %}
+       onclick='openMediaPlayer({{ (url_for("static", filename=item.file_path) if item.file_path else item.url)|tojson }}, {{ item.title|tojson }})'
+       {% elif item.type == 'photo' and item.file_path %}
+       onclick='openLibViewer("photo","","{{ url_for("static", filename=item.file_path) }}","{{ item.title|e }}")'
+       {% elif item.type == 'pdf' and item.file_path %}
+       onclick='openPdfViewer("{{ url_for("static", filename=item.file_path) }}","{{ item.title|e }}")'
+       {% endif %}>
+    {% if item.type in ('youtube','youtube_live') and item.url %}
+      {% set ytid = item.url | extract_yt_id %}
+      {% if ytid %}
+        <img src="https://img.youtube.com/vi/{{ ytid }}/mqdefault.jpg" alt="" onerror="this.parentElement.innerHTML='🎬'"/>
+        <div class="lib-play-overlay"><div class="lib-play-btn">▶</div></div>
+      {% else %}🎬{% endif %}
+    {% elif item.type == 'photo' and item.file_path %}
+      <img src="{{ url_for('static', filename=item.file_path) }}" alt="{{ item.title }}"/>
+    {% elif item.type == 'video' %}
+      <span>📹</span>
+      {% if item.file_path or item.url %}<div class="lib-play-overlay"><div class="lib-play-btn">▶</div></div>{% endif %}
+    {% elif item.type == 'pdf' %}📄
+    {% elif item.type == 'link' %}🔗
+    {% else %}📎{% endif %}
+  </div>
+  <div class="lib-item-body">
+    <span class="lib-item-badge type-{{ item.type }}">{% if item.type == 'youtube_live' %}YouTube{% else %}{{ item.type.replace('_',' ') }}{% endif %}</span>
+    <div class="lib-item-title" data-testid="text-lib-item-title-{{ item.id }}">{{ item.title }}</div>
+    {% if item.description %}<div class="lib-item-desc">{{ item.description }}</div>{% endif %}
+    <div class="lib-item-action">
+      {% if item.type in ('youtube', 'youtube_live') and item.url %}
+      <button class="lib-btn-view" onclick='openMediaPlayer({{ item.url|tojson }}, {{ item.title|tojson }})' data-testid="button-play-lib-{{ item.id }}">▶ Play</button>
+      {% elif item.type == 'video' and (item.file_path or item.url) %}
+      <button class="lib-btn-view" onclick='openMediaPlayer({{ (url_for("static", filename=item.file_path) if item.file_path else item.url)|tojson }}, {{ item.title|tojson }})' data-testid="button-play-lib-{{ item.id }}">▶ Play</button>
+      {% elif item.type == 'photo' and item.file_path %}
+      <button class="lib-btn-view" onclick='openLibViewer("photo","","{{ url_for("static", filename=item.file_path) }}","{{ item.title|e }}")'>👁 View</button>
+      {% elif item.type == 'pdf' and item.file_path %}
+      <button class="lib-btn-view" onclick='openPdfViewer("{{ url_for("static", filename=item.file_path) }}","{{ item.title|e }}")' data-testid="button-open-pdf-{{ item.id }}">📄 Open</button>
+      {% elif item.type == 'link' and item.url %}
+      <a href="{{ item.url }}" target="_blank" class="lib-btn-view" data-testid="button-open-lib-{{ item.id }}">🔗 Open Link</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
