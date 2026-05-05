@@ -1,0 +1,559 @@
+{% extends "base.html" %}
+{% block title %}Create Account{% endblock %}
+
+{% block extra_css %}
+<style>
+  .register-page {
+    min-height: calc(100vh - 64px);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--bg);
+  }
+
+  /* ── Left Panel ── */
+  .register-left {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 48px;
+  }
+
+  .register-box {
+    width: 100%;
+    max-width: 440px;
+  }
+
+  .register-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 40px;
+  }
+
+  .register-brand-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  }
+
+  .register-brand-text {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .register-heading {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.15;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .register-heading span {
+    background: linear-gradient(135deg, #818cf8, #6366f1, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .register-sub {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 36px;
+  }
+
+  .register-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .field-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .field-input-wrap {
+    position: relative;
+  }
+
+  .field-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 44px 12px 16px;
+    color: var(--text);
+    font-size: 0.95rem;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  .field-input::placeholder { color: var(--text-dim); }
+
+  .field-input:focus {
+    border-color: var(--primary);
+    background: rgba(99,102,241,0.06);
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.12);
+  }
+
+  .field-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+    font-size: 1rem;
+  }
+
+  .field-toggle {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+
+  .field-toggle:hover { color: var(--text); }
+
+  .strength-bar-wrap {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .strength-segments {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .strength-seg {
+    height: 3px;
+    flex: 1;
+    border-radius: 99px;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+
+  .strength-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    min-width: 56px;
+    text-align: right;
+    color: var(--text-dim);
+    transition: color 0.3s;
+  }
+
+  .btn-register {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: filter 0.2s, transform 0.15s, box-shadow 0.2s;
+    margin-top: 4px;
+    box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+  }
+
+  .btn-register:hover {
+    filter: brightness(1.12);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(99,102,241,0.45);
+  }
+
+  .btn-register:active { transform: translateY(0); }
+
+  .register-footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+
+  .register-footer a {
+    color: var(--primary-light);
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+
+  .register-footer a:hover { color: #a78bfa; }
+
+  /* ── Right Panel ── */
+  .register-right {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, #13131f 0%, #1a1040 50%, #0f0f1a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 48px;
+  }
+
+  .register-right::before {
+    content: '';
+    position: absolute;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%);
+    top: -100px;
+    right: -150px;
+    pointer-events: none;
+  }
+
+  .register-right::after {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(167,139,250,0.12) 0%, transparent 70%);
+    bottom: -80px;
+    left: -80px;
+    pointer-events: none;
+  }
+
+  .right-content {
+    position: relative;
+    z-index: 1;
+    max-width: 380px;
+  }
+
+  .right-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 99px;
+    padding: 6px 16px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-light);
+    margin-bottom: 28px;
+  }
+
+  .right-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .right-heading {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  .right-sub {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 40px;
+    line-height: 1.7;
+  }
+
+  .perk-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 44px;
+  }
+
+  .perk-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .perk-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(99,102,241,0.15);
+    border: 1px solid rgba(99,102,241,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .perk-text strong {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .perk-text span {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .social-proof {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+
+  .avatars {
+    display: flex;
+  }
+
+  .avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #1a1a24;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: -8px;
+  }
+
+  .avatars .avatar-circle:first-child { margin-left: 0; }
+
+  .proof-text strong {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .proof-text span {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .register-page { grid-template-columns: 1fr; }
+    .register-right { display: none; }
+    .register-left { padding: 40px 24px; }
+    .field-row { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-page">
+
+  <!-- Left: Form -->
+  <div class="register-left">
+    <div class="register-box">
+
+      <div class="register-brand">
+        <div class="register-brand-dot"></div>
+        <span class="register-brand-text">Free Account</span>
+      </div>
+
+      <h1 class="register-heading">Start learning<br><span>something new.</span></h1>
+      <p class="register-sub">Create your account in seconds. No credit card required.</p>
+
+      <form method="POST" action="{{ url_for('register') }}" class="register-form" id="registerForm">
+
+        <div class="field-row">
+          <div class="field-group">
+            <label for="username" class="field-label">Username</label>
+            <div class="field-input-wrap">
+              <input type="text" id="username" name="username" class="field-input"
+                     placeholder="johndoe" required minlength="3"
+                     data-testid="input-username" autocomplete="username"/>
+              <span class="field-icon">👤</span>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="email" class="field-label">Email</label>
+            <div class="field-input-wrap">
+              <input type="email" id="email" name="email" class="field-input"
+                     placeholder="you@example.com" required
+                     data-testid="input-email" autocomplete="email"/>
+              <span class="field-icon">✉</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="password" class="field-label">Password</label>
+          <div class="field-input-wrap">
+            <input type="password" id="password" name="password" class="field-input"
+                   placeholder="Min. 6 characters" required minlength="6"
+                   data-testid="input-password" autocomplete="new-password"/>
+            <button type="button" class="field-toggle" onclick="togglePassword('password')" data-testid="button-toggle-password">
+              <span id="eye-password">👁</span>
+            </button>
+          </div>
+          <div class="strength-bar-wrap" id="strengthWrap" style="display:none">
+            <div class="strength-segments">
+              <div class="strength-seg" id="seg1"></div>
+              <div class="strength-seg" id="seg2"></div>
+              <div class="strength-seg" id="seg3"></div>
+              <div class="strength-seg" id="seg4"></div>
+              <div class="strength-seg" id="seg5"></div>
+            </div>
+            <span class="strength-label" id="strengthLabel"></span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="confirm_password" class="field-label">Confirm Password</label>
+          <div class="field-input-wrap">
+            <input type="password" id="confirm_password" name="confirm_password" class="field-input"
+                   placeholder="Repeat your password" required
+                   data-testid="input-confirm-password" autocomplete="new-password"/>
+            <button type="button" class="field-toggle" onclick="togglePassword('confirm_password')" data-testid="button-toggle-confirm-password">
+              <span id="eye-confirm_password">👁</span>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-register" data-testid="button-submit-register">
+          Create Free Account →
+        </button>
+      </form>
+
+      <div class="register-footer">
+        Already have an account? <a href="{{ url_for('login') }}" data-testid="link-login">Sign in</a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Right: Visual Panel -->
+  <div class="register-right">
+    <div class="right-content">
+
+      <div class="right-badge">
+        <div class="right-badge-dot"></div>
+        Trusted by 50,000+ learners
+      </div>
+
+      <h2 class="right-heading">Everything you need<br>to grow your skills.</h2>
+      <p class="right-sub">Join a community of learners accessing world-class courses, expert instructors, and hands-on projects.</p>
+
+      <ul class="perk-list">
+        <li class="perk-item">
+          <div class="perk-icon-wrap">🎓</div>
+          <div class="perk-text">
+            <strong>Expert-led Courses</strong>
+            <span>Learn from industry professionals with real-world experience.</span>
+          </div>
+        </li>
+        <li class="perk-item">
+          <div class="perk-icon-wrap">⚡</div>
+          <div class="perk-text">
+            <strong>Learn at Your Own Pace</strong>
+            <span>Access content anytime, anywhere, on any device.</span>
+          </div>
+        </li>
+        <li class="perk-item">
+          <div class="perk-icon-wrap">🏆</div>
+          <div class="perk-text">
+            <strong>Earn Certificates</strong>
+            <span>Prove your skills with shareable completion certificates.</span>
+          </div>
+        </li>
+      </ul>
+
+      <div class="social-proof">
+        <div class="avatars">
+          <div class="avatar-circle">A</div>
+          <div class="avatar-circle">B</div>
+          <div class="avatar-circle">C</div>
+          <div class="avatar-circle">D</div>
+        </div>
+        <div class="proof-text">
+          <strong>Join today</strong>
+          <span>New learners sign up every day</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const strengthColors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e', '#10b981'];
+  const strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Excellent'];
+  const segs = [document.getElementById('seg1'), document.getElementById('seg2'),
+                document.getElementById('seg3'), document.getElementById('seg4'),
+                document.getElementById('seg5')];
+
+  document.getElementById('password').addEventListener('input', function () {
+    const val = this.value;
+    const wrap = document.getElementById('strengthWrap');
+    const label = document.getElementById('strengthLabel');
+    if (!val.length) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'flex';
+    let s = 0;
+    if (val.length >= 6) s++;
+    if (val.length >= 10) s++;
+    if (/[A-Z]/.test(val)) s++;
+    if (/[0-9]/.test(val)) s++;
+    if (/[^A-Za-z0-9]/.test(val)) s++;
+    segs.forEach((seg, i) => {
+      seg.style.background = i < s ? strengthColors[s] : 'var(--border)';
+    });
+    label.textContent = strengthLabels[s];
+    label.style.color = strengthColors[s];
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Payment Successful{% endblock %}
+
+{% block content %}
+<div class="result-page">
+  <div class="result-card success-card">
+    <div class="result-icon success-icon">🎉</div>
+    <h1 class="result-title" data-testid="text-success-title">Payment Successful!</h1>
+    {% if course %}
+      <p class="result-message">You now have full access to <strong>{{ course.title }}</strong>.</p>
+    {% endif %}
+    <div class="result-details">
+      <div class="result-row">
+        <span class="result-label">Amount Paid</span>
+        <span class="result-value" data-testid="text-amount">${{ "%.2f"|format(amount|float) }}</span>
+      </div>
+      <div class="result-row">
+        <span class="result-label">Order ID</span>
+        <span class="result-value result-mono" data-testid="text-order-id">{{ session_key[:8] }}…</span>
+      </div>
+    </div>
+    <div class="result-actions">
+      <a href="{{ url_for('my_courses') }}" class="btn btn-primary" data-testid="link-go-to-courses">Start Learning →</a>
+      <a href="{{ url_for('index') }}" class="btn btn-outline" data-testid="link-browse-more">Browse More Courses</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

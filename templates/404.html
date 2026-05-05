@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Page Not Found – boardified</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <style>
+    .not-found-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-primary);
+      padding: 40px 20px;
+    }
+    .not-found-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 60px 50px;
+      text-align: center;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+      animation: fadeInUp 0.5s ease;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .not-found-emoji {
+      font-size: 80px;
+      margin-bottom: 20px;
+      display: block;
+    }
+    .not-found-code {
+      font-size: 100px;
+      font-weight: 900;
+      line-height: 1;
+      color: #6c63ff;
+      margin-bottom: 12px;
+      letter-spacing: -4px;
+    }
+    .not-found-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    .not-found-msg {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+    .not-found-actions {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .not-found-actions .btn {
+      min-width: 140px;
+    }
+    .brand-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+      text-decoration: none;
+      margin-bottom: 32px;
+    }
+    .brand-link:hover { opacity: 0.8; }
+  </style>
+</head>
+<body>
+  <div class="not-found-wrapper">
+    <div class="not-found-card">
+      <a href="/" class="brand-link">⚡ boardified</a>
+
+      <span class="not-found-emoji">🗺️</span>
+      <div class="not-found-code">404</div>
+      <h1 class="not-found-title">Page Not Found</h1>
+      <p class="not-found-msg">
+        Looks like this page took a wrong turn! The page you're looking for
+        doesn't exist or may have been moved.
+      </p>
+
+      <div class="not-found-actions">
+        <a href="/" class="btn btn-primary" data-testid="link-404-home">Go Home</a>
+        <a href="javascript:history.back()" class="btn btn-outline" data-testid="link-404-back">Go Back</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

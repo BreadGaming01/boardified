@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}boardified{% endblock %} — boardified</title>
+  <meta name="description" content="boardified — Discover world-class courses taught by experts.">
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="{{ url_for('index') }}" class="nav-brand">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-name">boardified</span>
+    </a>
+
+    <div class="nav-links">
+      <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Browse</a>
+      {% if session.get('user_id') %}
+        {% if session.get('role') == 'admin' %}
+          <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">Dashboard</a>
+          <a href="{{ url_for('admin_library') }}" class="nav-link {% if 'library' in request.endpoint or 'folder' in request.endpoint %}active{% endif %}">Library</a>
+          <a href="{{ url_for('admin_coupons') }}" class="nav-link {% if request.endpoint == 'admin_coupons' %}active{% endif %}">Coupons</a>
+          <a href="{{ url_for('admin_create_course') }}" class="nav-btn btn-primary">+ New Course</a>
+        {% else %}
+          <a href="{{ url_for('my_courses') }}" class="nav-link {% if request.endpoint == 'my_courses' %}active{% endif %}">My Courses</a>
+          <a href="{{ url_for('cart') }}" class="nav-cart {% if request.endpoint == 'cart' %}active{% endif %}" data-testid="link-cart">
+            🛒 <span class="cart-count" id="navCartCount">{{ session.get('cart', [])|length }}</span>
+          </a>
+        {% endif %}
+        <div class="nav-user">
+          <div class="user-avatar">{{ session['username'][0].upper() }}</div>
+          <div class="user-dropdown">
+            <div class="dropdown-header">
+              <strong>{{ session['username'] }}</strong>
+              <span class="role-badge role-{{ session['role'] }}">{{ session['role'] }}</span>
+            </div>
+            <a href="{{ url_for('account') }}" class="dropdown-item">Account Settings</a>
+            <a href="{{ url_for('logout') }}" class="dropdown-item logout">Sign Out</a>
+          </div>
+        </div>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="nav-link">Sign In</a>
+        <a href="{{ url_for('register') }}" class="nav-btn btn-primary">Get Started</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+          <span>{{ message }}</span>
+          <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<main class="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-brand">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-name">boardified</span>
+    </div>
+    <p class="footer-tagline">Empowering learners worldwide.</p>
+    <p class="footer-copy">&copy; 2025 boardified. All rights reserved.</p>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+function updateCartBadge(count) {
+  const badge = document.getElementById('navCartCount');
+  if (badge) badge.textContent = count;
+}
+async function addToCart(courseId, btn) {
+  if (!btn) return;
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    const res = await fetch(`/cart/add/${courseId}`, { method: 'POST' });
+    const data = await res.json();
+    if (data.ok) {
+      updateCartBadge(data.count);
+      btn.textContent = '✓ Added';
+      btn.classList.add('btn-success-state');
+    } else {
+      btn.textContent = data.msg === 'You already own this course' ? '✓ Owned' : '✕ Error';
+      btn.disabled = false;
+    }
+  } catch {
+    btn.textContent = '✕ Error';
+    btn.disabled = false;
+  }
+}
+</script>
+{% block extra_js %}{% endblock %}
+
+<!-- ═══ Global PDF Viewer ══════════════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+.bpdf-overlay {
+  position: fixed; inset: 0; background: #111118; z-index: 10000;
+  display: none; flex-direction: column; font-family: 'Inter', sans-serif;
+}
+.bpdf-overlay.open { display: flex; }
+.bpdf-toolbar {
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+  padding: 10px 16px; background: rgba(0,0,0,0.55);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.bpdf-title {
+  flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 700; color: #e5e7eb;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bpdf-btn {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.13);
+  color: rgba(255,255,255,0.75); border-radius: 7px; padding: 6px 13px;
+  cursor: pointer; font-size: 0.78rem; font-weight: 700; transition: all 0.15s;
+  white-space: nowrap; font-family: inherit;
+}
+.bpdf-btn:hover:not(:disabled) { background: rgba(99,102,241,0.3); color: #fff; border-color: rgba(99,102,241,0.5); }
+.bpdf-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+.bpdf-btn-close:hover { background: rgba(239,68,68,0.3) !important; border-color: rgba(239,68,68,0.5) !important; }
+.bpdf-sep { width: 1px; height: 22px; background: rgba(255,255,255,0.12); flex-shrink: 0; }
+.bpdf-page-info {
+  font-size: 0.8rem; color: rgba(255,255,255,0.6); white-space: nowrap;
+  min-width: 60px; text-align: center;
+}
+.bpdf-body {
+  flex: 1; overflow-y: auto; display: flex;
+  flex-direction: column; align-items: center;
+  padding: 28px 16px; background: #2a2a35; gap: 14px;
+}
+.bpdf-canvas {
+  box-shadow: 0 8px 48px rgba(0,0,0,0.6); border-radius: 3px; display: block; max-width: 100%;
+}
+.bpdf-status {
+  color: rgba(255,255,255,0.55); font-size: 0.9rem;
+  text-align: center; padding: 60px 20px; width: 100%;
+}
+.bpdf-status a { color: #93c5fd; }
+.bpdf-status .bpdf-spinner {
+  width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: #818cf8; border-radius: 50%;
+  animation: bpdf-spin 0.8s linear infinite; margin: 0 auto 16px;
+}
+@keyframes bpdf-spin { to { transform: rotate(360deg); } }
+</style>
+
+<div class="bpdf-overlay" id="bpdfOverlay">
+  <div class="bpdf-toolbar">
+    <button class="bpdf-btn bpdf-btn-close" onclick="bpdfClose()" title="Close">✕ Close</button>
+    <div class="bpdf-sep"></div>
+    <span class="bpdf-title" id="bpdfTitle">Document</span>
+    <div class="bpdf-sep"></div>
+    <button class="bpdf-btn" id="bpdfPrev" onclick="bpdfPrevPage()" disabled>← Prev</button>
+    <span class="bpdf-page-info" id="bpdfPageInfo">— / —</span>
+    <button class="bpdf-btn" id="bpdfNext" onclick="bpdfNextPage()" disabled>Next →</button>
+    <div class="bpdf-sep"></div>
+    <button class="bpdf-btn" onclick="bpdfZoom(-0.25)" title="Zoom out">−</button>
+    <button class="bpdf-btn" onclick="bpdfZoom(0.25)" title="Zoom in">+</button>
+    <div class="bpdf-sep"></div>
+    <a id="bpdfDownload" class="bpdf-btn" download title="Download PDF">⬇ Download</a>
+  </div>
+  <div class="bpdf-body" id="bpdfBody">
+    <div class="bpdf-status"><div class="bpdf-spinner"></div>Loading…</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  let _doc = null, _page = 1, _total = 0, _scale = 1.4, _busy = false, _url = '';
+
+  window.openPdfViewer = async function(url, title) {
+    _url = url;
+    _page = 1; _scale = 1.4;
+    document.getElementById('bpdfTitle').textContent = title || 'Document';
+    document.getElementById('bpdfDownload').href = url;
+    document.getElementById('bpdfOverlay').classList.add('open');
+    _showStatus('<div class="bpdf-spinner"></div>Loading PDF…');
+
+    try {
+      _doc = await pdfjsLib.getDocument(url).promise;
+      _total = _doc.numPages;
+      _updateControls();
+      await _render(_page);
+    } catch(err) {
+      _showStatus('Could not render this PDF in the browser. <br><a href="' + url + '" target="_blank">Open in new tab ↗</a>');
+    }
+  };
+
+  window.bpdfClose = function() {
+    document.getElementById('bpdfOverlay').classList.remove('open');
+    document.getElementById('bpdfBody').innerHTML = '';
+    _doc = null; _page = 1; _total = 0;
+  };
+
+  window.bpdfPrevPage = function() { if (_page > 1) { _page--; _render(_page); } };
+  window.bpdfNextPage = function() { if (_page < _total) { _page++; _render(_page); } };
+  window.bpdfZoom = function(delta) {
+    _scale = Math.max(0.5, Math.min(3.5, _scale + delta));
+    _render(_page);
+  };
+
+  function _updateControls() {
+    document.getElementById('bpdfPageInfo').textContent = _page + ' / ' + _total;
+    document.getElementById('bpdfPrev').disabled = _page <= 1;
+    document.getElementById('bpdfNext').disabled = _page >= _total;
+  }
+
+  async function _render(num) {
+    if (_busy || !_doc) return;
+    _busy = true;
+    try {
+      const page = await _doc.getPage(num);
+      const vp = page.getViewport({ scale: _scale });
+      const body = document.getElementById('bpdfBody');
+      let canvas = document.getElementById('bpdfCanvas');
+      if (!canvas) {
+        body.innerHTML = '';
+        canvas = document.createElement('canvas');
+        canvas.id = 'bpdfCanvas';
+        canvas.className = 'bpdf-canvas';
+        body.appendChild(canvas);
+      }
+      canvas.width = vp.width; canvas.height = vp.height;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+      _updateControls();
+    } catch(e) { /* silent */ }
+    _busy = false;
+  }
+
+  function _showStatus(html) {
+    document.getElementById('bpdfBody').innerHTML = '<div class="bpdf-status">' + html + '</div>';
+    document.getElementById('bpdfPageInfo').textContent = '— / —';
+    document.getElementById('bpdfPrev').disabled = true;
+    document.getElementById('bpdfNext').disabled = true;
+  }
+
+  document.getElementById('bpdfOverlay').addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') bpdfClose();
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') bpdfNextPage();
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   bpdfPrevPage();
+  });
+})();
+</script>
+</body>
+</html>

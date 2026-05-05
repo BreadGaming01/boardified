@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Browse Courses{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🎓 World-Class Education</div>
+    <h1 class="hero-title">Unlock Your <span class="gradient-text">Full Potential</span></h1>
+    <p class="hero-subtitle">Join thousands of learners mastering new skills every day with expert-led courses.</p>
+    <div class="hero-search">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search for anything…" data-testid="input-search"/>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><strong>{{ courses|length }}</strong> Courses</div>
+      <div class="stat-dot"></div>
+      <div class="hero-stat"><strong>Expert</strong> Instructors</div>
+      <div class="stat-dot"></div>
+      <div class="hero-stat"><strong>Lifetime</strong> Access</div>
+    </div>
+  </div>
+</section>
+
+<!-- Courses Grid -->
+<section class="courses-section">
+  <div class="section-container">
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="filters-left">
+        <h2 class="section-title">
+          {% if courses %}All Courses <span class="count-badge">{{ courses|length }}</span>{% else %}No Courses Yet{% endif %}
+        </h2>
+      </div>
+      <div class="filters-right">
+        <select id="categoryFilter" class="filter-select" data-testid="select-category">
+          <option value="">All Categories</option>
+          {% set categories = courses | map(attribute='category') | select | unique | list %}
+          {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+        <select id="levelFilter" class="filter-select" data-testid="select-level">
+          <option value="">All Levels</option>
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+        <select id="priceFilter" class="filter-select" data-testid="select-price">
+          <option value="">Any Price</option>
+          <option value="free">Free</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+    </div>
+
+    {% if courses %}
+    <div class="courses-grid" id="coursesGrid">
+      {% for course in courses %}
+      <div class="course-card"
+           data-category="{{ course.category }}"
+           data-level="{{ course.level }}"
+           data-price="{{ 'free' if course.price == 0 else 'paid' }}"
+           data-title="{{ course.title | lower }}"
+           data-testid="card-course-{{ course.id }}">
+        <a href="{{ url_for('course_detail', course_id=course.id) }}" class="course-link">
+          <div class="course-thumb">
+            {% if course.thumbnail %}
+              <img src="{{ course.thumbnail }}" alt="{{ course.title }}" loading="lazy"/>
+            {% else %}
+              <div class="thumb-placeholder">
+                <span class="thumb-emoji">📚</span>
+              </div>
+            {% endif %}
+            <div class="course-level-badge">{{ course.level }}</div>
+            {% if course.id in user_purchases %}
+              <div class="course-owned-badge">✓ Owned</div>
+            {% endif %}
+          </div>
+          <div class="course-body">
+            {% if course.category %}
+              <span class="course-category" data-testid="text-category-{{ course.id }}">{{ course.category }}</span>
+            {% endif %}
+            <h3 class="course-title" data-testid="text-title-{{ course.id }}">{{ course.title }}</h3>
+            <p class="course-desc">{{ course.description[:100] }}{% if course.description|length > 100 %}…{% endif %}</p>
+            <div class="course-meta">
+              <span class="course-instructor">👨‍🏫 {{ course.instructor }}</span>
+              <span class="course-lessons">📖 {{ course.lessons|length }} lessons</span>
+            </div>
+          </div>
+          <div class="course-footer">
+            <div class="course-price" data-testid="text-price-{{ course.id }}">
+              {% if course.price == 0 %}
+                <span class="price-free">Free</span>
+              {% else %}
+                <span class="price-amount">${{ "%.2f"|format(course.price) }}</span>
+              {% endif %}
+            </div>
+            <span class="course-cta">
+              {% if course.id in user_purchases %}View →{% else %}Enroll →{% endif %}
+            </span>
+          </div>
+        </a>
+        {% if session.get('user_id') and session.get('role') != 'admin' and course.id not in user_purchases %}
+        <button class="course-add-cart-btn" onclick="addToCart('{{ course.id }}', this)" data-testid="button-add-cart-{{ course.id }}">+ Cart</button>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <div id="noResults" class="no-results hidden">
+      <div class="no-results-icon">🔍</div>
+      <p>No courses match your search.</p>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🎓</div>
+      <h3>No courses published yet</h3>
+      <p>Check back soon — great content is on its way!</p>
+      {% if session.get('role') == 'admin' %}
+        <a href="{{ url_for('admin_create_course') }}" class="btn btn-primary" data-testid="link-create-first-course">Create First Course</a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const search = document.getElementById('searchInput');
+const catFilter = document.getElementById('categoryFilter');
+const lvlFilter = document.getElementById('levelFilter');
+const priceFilter = document.getElementById('priceFilter');
+const grid = document.getElementById('coursesGrid');
+const noResults = document.getElementById('noResults');
+
+function filterCourses() {
+  if (!grid) return;
+  const q = (search?.value || '').toLowerCase();
+  const cat = catFilter?.value || '';
+  const lvl = lvlFilter?.value || '';
+  const price = priceFilter?.value || '';
+  let visible = 0;
+  grid.querySelectorAll('.course-card').forEach(card => {
+    const titleMatch = card.dataset.title.includes(q);
+    const catMatch = !cat || card.dataset.category === cat;
+    const lvlMatch = !lvl || card.dataset.level === lvl;
+    const priceMatch = !price || card.dataset.price === price;
+    const show = titleMatch && catMatch && lvlMatch && priceMatch;
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  if (noResults) noResults.classList.toggle('hidden', visible > 0);
+}
+
+[search, catFilter, lvlFilter, priceFilter].forEach(el => {
+  if (el) el.addEventListener('input', filterCourses);
+});
+</script>
+{% endblock %}

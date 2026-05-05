@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}My Courses{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">My Learning</h1>
+    <p class="page-sub">All the courses you've enrolled in</p>
+  </div>
+
+  {% if courses %}
+  <div class="courses-grid">
+    {% for course in courses %}
+    <div class="course-card" data-testid="card-my-course-{{ course.id }}">
+      <a href="{{ url_for('course_detail', course_id=course.id) }}" class="course-link">
+        <div class="course-thumb">
+          {% if course.thumbnail %}
+            <img src="{{ course.thumbnail }}" alt="{{ course.title }}" loading="lazy"/>
+          {% else %}
+            <div class="thumb-placeholder"><span class="thumb-emoji">📚</span></div>
+          {% endif %}
+          <div class="course-owned-badge">✓ Enrolled</div>
+        </div>
+        <div class="course-body">
+          {% if course.category %}<span class="course-category">{{ course.category }}</span>{% endif %}
+          <h3 class="course-title" data-testid="text-my-course-title-{{ course.id }}">{{ course.title }}</h3>
+          <p class="course-desc">{{ course.description[:90] }}{% if course.description|length > 90 %}…{% endif %}</p>
+          <div class="course-meta">
+            <span class="course-instructor">👨‍🏫 {{ course.instructor }}</span>
+            <span class="course-lessons">📖 {{ course.lessons|length }} lessons</span>
+          </div>
+        </div>
+        <div class="course-footer">
+          <div class="course-progress-bar">
+            <div class="progress-fill" style="width: 0%"></div>
+          </div>
+          <span class="course-cta">Continue →</span>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">🎓</div>
+    <h3>You haven't enrolled in any courses yet</h3>
+    <p>Explore our catalogue and start learning today!</p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary" data-testid="link-browse-courses">Browse Courses</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

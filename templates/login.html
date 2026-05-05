@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-icon">🔑</div>
+      <h1 class="auth-title">Welcome Back</h1>
+      <p class="auth-sub">Sign in to continue learning</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('login') }}" class="auth-form" id="loginForm">
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-wrap">
+          <span class="input-icon">✉</span>
+          <input type="email" id="email" name="email" class="form-input" placeholder="you@example.com" required autocomplete="email" data-testid="input-email"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required autocomplete="current-password" data-testid="input-password"/>
+          <button type="button" class="toggle-pw" onclick="togglePassword('password')" data-testid="button-toggle-password">
+            <span id="eye-password">👁</span>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" data-testid="button-submit-login">Sign In</button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Don't have an account? <a href="{{ url_for('register') }}" class="auth-link" data-testid="link-register">Create one free</a></p>
+    </div>
+  </div>
+
+  <div class="auth-visual">
+    <div class="visual-content">
+      <div class="visual-stat">
+        <span class="stat-number">500+</span>
+        <span class="stat-label">Expert Courses</span>
+      </div>
+      <div class="visual-stat">
+        <span class="stat-number">50K+</span>
+        <span class="stat-label">Students</span>
+      </div>
+      <div class="visual-stat">
+        <span class="stat-number">4.9★</span>
+        <span class="stat-label">Avg. Rating</span>
+      </div>
+      <blockquote class="visual-quote">
+        "The best investment you can make is in yourself."
+        <cite>— Warren Buffett</cite>
+      </blockquote>
+    </div>
+  </div>
+</div>
+{% endblock %}

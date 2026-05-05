@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Account Settings – boardified{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-inner">
+    <h1 class="page-title">Account Settings</h1>
+    <p class="page-subtitle">Update your username, email, or password.</p>
+  </div>
+</div>
+
+<div class="container" style="max-width:560px; padding: 2rem 1rem 4rem;">
+
+  <form method="POST" action="{{ url_for('account') }}" novalidate>
+
+    <!-- ── Profile Info ─────────────────────────────── -->
+    <div class="settings-card">
+      <h2 class="settings-section-title">Profile Information</h2>
+
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          class="form-input"
+          value="{{ user.username }}"
+          required
+          autocomplete="username"
+          data-testid="input-username"
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          class="form-input"
+          value="{{ user.email }}"
+          required
+          autocomplete="email"
+          data-testid="input-email"
+        >
+      </div>
+    </div>
+
+    <!-- ── Change Password ───────────────────────────── -->
+    <div class="settings-card">
+      <h2 class="settings-section-title">Change Password</h2>
+      <p class="settings-hint">Leave these blank if you don't want to change your password.</p>
+
+      <div class="form-group">
+        <label class="form-label" for="current_password">Current password</label>
+        <input
+          type="password"
+          id="current_password"
+          name="current_password"
+          class="form-input"
+          autocomplete="current-password"
+          data-testid="input-current-password"
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="new_password">New password</label>
+        <input
+          type="password"
+          id="new_password"
+          name="new_password"
+          class="form-input"
+          autocomplete="new-password"
+          data-testid="input-new-password"
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="confirm_password">Confirm new password</label>
+        <input
+          type="password"
+          id="confirm_password"
+          name="confirm_password"
+          class="form-input"
+          autocomplete="new-password"
+          data-testid="input-confirm-password"
+        >
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-full" data-testid="button-save-account">
+      Save Changes
+    </button>
+
+  </form>
+</div>
+
+<style>
+.settings-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+.settings-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 1rem;
+}
+.settings-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: -0.5rem 0 1rem;
+}
+.btn-full {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+}
+.form-group {
+  margin-bottom: 1rem;
+}
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+.form-input {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+</style>
+{% endblock %}
