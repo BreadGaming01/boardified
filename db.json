@@ -1,0 +1,136 @@
+{
+  "users": [
+    {
+      "id": "2f65c51a-fd65-4176-8bf8-6678b8f5917e",
+      "username": "admin",
+      "email": "itzbreadgaming@gmail.com",
+      "password": "2ca178a5fe44f98b4e295bef3f7ec7281798ea3ab04e9c224e16e7067576bff6",
+      "role": "admin",
+      "created_at": "2026-05-05T11:17:25.459455"
+    }
+  ],
+  "courses": [
+    {
+      "id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "title": "JaNna",
+      "description": "Ahha",
+      "price": 0.0,
+      "category": "Bsbsh",
+      "thumbnail": "",
+      "level": "Beginner",
+      "instructor": "admin",
+      "lessons": [],
+      "created_at": "2026-05-05T13:57:18.669016",
+      "updated_at": "2026-05-05T13:57:18.669021"
+    }
+  ],
+  "purchases": [
+    {
+      "id": "d124c3fe-2ff5-48b8-993e-c470008dd938",
+      "user_id": "2f65c51a-fd65-4176-8bf8-6678b8f5917e",
+      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "amount": 0.0,
+      "status": "failed",
+      "session_key": "d124c3fe-2ff5-48b8-993e-c470008dd938",
+      "created_at": "2026-05-05T13:57:51.150869"
+    },
+    {
+      "id": "930a699a-4db9-41c4-a5fc-215b08963b41",
+      "user_id": "2f65c51a-fd65-4176-8bf8-6678b8f5917e",
+      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "amount": 0.0,
+      "status": "failed",
+      "session_key": "930a699a-4db9-41c4-a5fc-215b08963b41",
+      "created_at": "2026-06-10T07:42:02.664200"
+    },
+    {
+      "id": "3c0cfdef-8326-41d1-b6d6-eb36301927b0",
+      "user_id": "2f65c51a-fd65-4176-8bf8-6678b8f5917e",
+      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "amount": 0.0,
+      "status": "failed",
+      "session_key": "3c0cfdef-8326-41d1-b6d6-eb36301927b0",
+      "created_at": "2026-06-12T13:10:42.607347"
+    },
+    {
+      "id": "d5ce8ee2-8844-4b4d-b9d4-66a2d902183e",
+      "user_id": "2f65c51a-fd65-4176-8bf8-6678b8f5917e",
+      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "amount": 0.0,
+      "status": "failed",
+      "session_key": "d5ce8ee2-8844-4b4d-b9d4-66a2d902183e",
+      "created_at": "2026-06-12T13:10:46.993508"
+    },
+    {
+      "id": "7a3f56e3-b612-4190-b637-cd89aad550c7",
+      "user_id": "2f65c51a-fd65-4176-8bf8-6678b8f5917e",
+      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "amount": 0.0,
+      "status": "failed",
+      "session_key": "7a3f56e3-b612-4190-b637-cd89aad550c7",
+      "created_at": "2026-06-12T13:10:49.475237"
+    }
+  ],
+  "folders": [
+    {
+      "id": "36683b9f-52f0-46b1-a436-95b7e0dd4418",
+      "name": "Bsnsn",
+      "description": "",
+      "color": "#6366f1",
+      "icon": "\ud83d\udcc1",
+      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "parent_folder_id": null,
+      "created_at": "2026-05-05T14:16:46.050618"
+    },
+    {
+      "id": "67d01eb6-0aa8-4bf2-9763-5475caa1c298",
+      "name": "Bsjwj",
+      "description": "",
+      "color": "#6366f1",
+      "icon": "\ud83d\udcc1",
+      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "parent_folder_id": "36683b9f-52f0-46b1-a436-95b7e0dd4418",
+      "created_at": "2026-05-05T14:16:53.203481"
+    }
+  ],
+  "content_items": [
+    {
+      "id": "bf807a96-8dea-460b-8f2c-d12c46b3ceef",
+      "folder_id": null,
+      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "title": "Hahah",
+      "description": "",
+      "type": "pdf",
+      "url": null,
+      "file_path": "uploads/7e8ad594-bdeb-4150-b14e-e7dac17547e4_NCERT-Chapterwise-Solution-The-Sermon-at-Benaras.pdf",
+      "file_name": "NCERT-Chapterwise-Solution-The-Sermon-at-Benaras.pdf",
+      "created_at": "2026-05-05T13:57:42.852464"
+    },
+    {
+      "id": "f1a18b66-32a6-4260-b509-4f4ea4837aec",
+      "folder_id": "67d01eb6-0aa8-4bf2-9763-5475caa1c298",
+      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "title": "Bsnsn",
+      "description": "",
+      "type": "photo",
+      "url": null,
+      "file_path": "uploads/3ddf6598-a0d8-4e65-ba82-2b6b740dd861_Screenshot_2026-05-05-17-34-22-290_com.android.chrome.jpg",
+      "file_name": "Screenshot_2026-05-05-17-34-22-290_com.android.chrome.jpg",
+      "created_at": "2026-05-05T14:17:07.373588"
+    }
+  ],
+  "coupons": [],
+  "notices": [
+    {
+      "id": "fe7d7eff-948e-4e2b-9e54-93cff1b11a56",
+      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "type": "live_class",
+      "title": "Uiwjw",
+      "message": "Hello",
+      "link": null,
+      "link_text": "Join Now",
+      "is_active": true,
+      "created_at": "2026-06-12T13:24:39.212787"
+    }
+  ]
+}
