@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+{% block title %}{{ folder.name }} — {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Notices */
+.notices-wrap { display:flex; flex-direction:column; gap:0; }
+.notice-bar { width:100%; border-radius:10px; overflow:hidden; margin-bottom:8px; }
+.notice-bar-inner { padding:11px 16px; display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+.notice-left { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+.notice-icon { font-size:1.1rem; flex-shrink:0; }
+.notice-text { display:flex; flex-direction:column; gap:1px; min-width:0; }
+.notice-title { font-weight:700; font-size:0.88rem; color:#fff; }
+.notice-msg { font-size:0.77rem; color:rgba(255,255,255,.75); line-height:1.4; }
+.notice-btn { font-size:0.76rem; font-weight:700; padding:5px 14px; border-radius:20px; text-decoration:none; white-space:nowrap; flex-shrink:0; transition:opacity .15s; }
+.notice-btn:hover { opacity:.85; }
+.notice-live_class { background:linear-gradient(135deg,#7f1d1d,#991b1b); }
+.notice-important { background:linear-gradient(135deg,#78350f,#92400e); }
+.notice-info { background:linear-gradient(135deg,#1e3a5f,#1e40af); }
+.notice-btn-live_class { background:rgba(239,68,68,.25); color:#fca5a5; border:1px solid rgba(239,68,68,.4); }
+.notice-btn-important { background:rgba(249,115,22,.25); color:#fdba74; border:1px solid rgba(249,115,22,.4); }
+.notice-btn-info { background:rgba(59,130,246,.25); color:#93c5fd; border:1px solid rgba(59,130,246,.4); }
+.notice-pulse { width:9px; height:9px; border-radius:50%; background:#ef4444; flex-shrink:0; animation:pulse-dot 1.5s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.6)} 50%{box-shadow:0 0 0 6px rgba(239,68,68,0)} }
+
+.cf-breadcrumb {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  font-size: 0.82rem; color: var(--text-muted); margin-bottom: 20px;
+}
+.cf-breadcrumb a { color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+.cf-breadcrumb a:hover { color: var(--primary-light); }
+.cf-breadcrumb .sep { color: var(--text-dim); }
+.cf-breadcrumb .current { color: var(--text); font-weight: 600; }
+
+.cf-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 32px;
+}
+.cf-title-row { display: flex; align-items: center; gap: 12px; }
+.cf-icon { font-size: 2.4rem; }
+.cf-title { font-size: 1.7rem; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
+.cf-color-bar { height: 4px; width: 48px; border-radius: 99px; background: var(--fcolor, #6366f1); margin-top: 6px; }
+.cf-desc { font-size: 0.88rem; color: var(--text-muted); margin-top: 6px; line-height: 1.6; }
+
+.cf-section-label {
+  font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-muted); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.cf-section-label .pill {
+  background: rgba(255,255,255,0.07); border-radius: 99px;
+  padding: 2px 9px; font-size: 0.72rem; color: var(--text-dim); font-weight: 500;
+  text-transform: none; letter-spacing: 0;
+}
+
+/* Subfolder grid */
+.cf-subfolder-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px; margin-bottom: 36px;
+}
+.cf-subfolder-card {
+  position: relative; display: block; text-decoration: none;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 18px; overflow: hidden;
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+.cf-subfolder-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: rgba(255,255,255,0.15); }
+.cf-subfolder-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--fcolor, #6366f1);
+}
+.cf-sf-icon { font-size: 1.9rem; margin-bottom: 8px; }
+.cf-sf-name { font-weight: 700; font-size: 0.9rem; color: var(--text); margin-bottom: 3px; }
+.cf-sf-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.cf-sf-count { font-size: 0.72rem; color: var(--text-muted); }
+.cf-sf-arrow { font-size: 0.85rem; color: var(--fcolor, #6366f1); font-weight: 700; opacity: 0.7; transition: opacity 0.15s, transform 0.15s; }
+.cf-subfolder-card:hover .cf-sf-arrow { opacity: 1; transform: translateX(3px); }
+
+/* Content grid */
+.cf-item-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;
+}
+
+/* Item card */
+.cf-item-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  transition: transform 0.15s, border-color 0.15s;
+  display: flex; flex-direction: column;
+}
+.cf-item-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.15); }
+.cf-item-preview {
+  width: 100%; height: 110px; background: rgba(255,255,255,0.03);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.4rem; overflow: hidden; position: relative; cursor: pointer;
+}
+.cf-item-preview img { width: 100%; height: 100%; object-fit: cover; }
+.cf-play-overlay {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.35);
+}
+.cf-play-btn {
+  width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.9);
+  display: flex; align-items: center; justify-content: center; font-size: 0.9rem; padding-left: 3px;
+}
+.cf-item-body { padding: 10px 12px; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.cf-item-badge {
+  display: inline-block; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 99px; width: fit-content;
+}
+.type-youtube, .type-youtube_live { background: rgba(255,0,0,0.15); color: #f87171; }
+.type-video   { background: rgba(99,102,241,0.15); color: var(--primary-light); }
+.type-pdf     { background: rgba(239,68,68,0.12); color: #fca5a5; }
+.type-link    { background: rgba(59,130,246,0.15); color: #93c5fd; }
+.type-photo   { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+.type-iframe  { background: rgba(234,179,8,0.15);  color: #fde047; }
+.cf-item-title { font-size: 0.85rem; font-weight: 700; color: var(--text); line-height: 1.4; }
+.cf-item-desc  { font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; flex: 1; }
+.cf-item-action { margin-top: 6px; }
+.cf-btn-view {
+  font-size: 0.75rem; padding: 5px 12px; border-radius: 7px; border: none;
+  cursor: pointer; font-weight: 600; background: rgba(99,102,241,0.15);
+  color: var(--primary-light); transition: background 0.15s; text-decoration: none;
+  display: inline-block;
+}
+.cf-btn-view:hover { background: rgba(99,102,241,0.28); }
+
+/* Viewer modal */
+.cf-viewer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300;
+  display: none; align-items: center; justify-content: center; padding: 16px;
+}
+.cf-viewer-overlay.open { display: flex; }
+.cf-viewer-box {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); width: 100%; max-width: 880px; overflow: hidden;
+}
+.cf-viewer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+}
+.cf-viewer-header h3 { font-size: 0.95rem; font-weight: 700; margin: 0; color: var(--text); }
+.cf-viewer-close {
+  background: rgba(255,255,255,0.07); border: none; color: var(--text);
+  border-radius: 8px; padding: 5px 12px; cursor: pointer; font-size: 1rem;
+}
+.cf-viewer-close:hover { background: rgba(255,255,255,0.15); }
+.cf-viewer-body { padding: 16px; }
+.cf-viewer-iframe { width: 100%; height: 440px; border: none; border-radius: 10px; background: #000; }
+.cf-viewer-img    { width: 100%; max-height: 70vh; object-fit: contain; border-radius: 10px; display: block; }
+.cf-viewer-video  { width: 100%; border-radius: 10px; max-height: 70vh; }
+.cf-viewer-link   { text-align: center; padding: 40px; }
+.cf-viewer-link a { color: var(--primary-light); font-size: 1.05rem; font-weight: 600; word-break: break-all; }
+
+.cf-empty {
+  text-align: center; padding: 60px 20px; color: var(--text-muted);
+}
+.cf-empty .ef-icon { font-size: 3rem; margin-bottom: 12px; }
+.cf-empty h3 { font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <!-- Notices Banner -->
+  {% if notices %}
+  <div class="notices-wrap" style="margin-bottom:16px;">
+    {% for n in notices %}
+    <div class="notice-bar notice-{{ n.type }}">
+      <div class="notice-bar-inner">
+        <div class="notice-left">
+          {% if n.type == 'live_class' %}<span class="notice-pulse"></span>{% endif %}
+          <span class="notice-icon">{{ '🔴' if n.type=='live_class' else '⚠️' if n.type=='important' else 'ℹ️' }}</span>
+          <div class="notice-text">
+            <span class="notice-title">{{ n.title }}</span>
+            {% if n.message %}<span class="notice-msg">{{ n.message }}</span>{% endif %}
+          </div>
+        </div>
+        {% if n.link %}
+        <a href="{{ n.link }}" target="_blank" rel="noopener" class="notice-btn notice-btn-{{ n.type }}">{{ n.link_text or 'Open' }} →</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Breadcrumb -->
+  <div class="cf-breadcrumb">
+    <a href="{{ url_for('course_detail', course_id=course.id) }}">{{ course.title }}</a>
+    <span class="sep">/</span>
+    {% if parent %}
+    <a href="{{ url_for('course_folder_view', course_id=course.id, folder_id=parent.id) }}">{{ parent.icon }} {{ parent.name }}</a>
+    <span class="sep">/</span>
+    {% endif %}
+    <span class="current">{{ folder.icon }} {{ folder.name }}</span>
+  </div>
+
+  <!-- Header -->
+  <div class="cf-header">
+    <div>
+      <div class="cf-title-row">
+        <span class="cf-icon">{{ folder.icon }}</span>
+        <div>
+          <div class="cf-title">{{ folder.name }}</div>
+          <div class="cf-color-bar" style="--fcolor:{{ folder.color }}"></div>
+        </div>
+      </div>
+      {% if folder.description %}
+      <div class="cf-desc">{{ folder.description }}</div>
+      {% endif %}
+    </div>
+    <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline">← Back to Course</a>
+  </div>
+
+  <!-- Subfolders -->
+  {% if subfolders %}
+  <div style="margin-bottom:32px;">
+    <div class="cf-section-label">
+      📁 Subfolders <span class="pill">{{ subfolders|length }}</span>
+    </div>
+    <div class="cf-subfolder-grid">
+      {% for sf in subfolders %}
+      <a href="{{ url_for('course_folder_view', course_id=course.id, folder_id=sf.id) }}"
+         class="cf-subfolder-card" style="--fcolor:{{ sf.color }}"
+         data-testid="card-subfolder-{{ sf.id }}">
+        <div class="cf-subfolder-bar"></div>
+        <div class="cf-sf-icon">{{ sf.icon }}</div>
+        <div class="cf-sf-name">{{ sf.name }}</div>
+        {% if sf.description %}<div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">{{ sf.description }}</div>{% endif %}
+        <div class="cf-sf-meta">
+          <span class="cf-sf-count">{{ sf.item_count }} item{{ 's' if sf.item_count != 1 else '' }}</span>
+          <span class="cf-sf-arrow">→</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Content items -->
+  {% if items %}
+  <div class="cf-section-label">
+    📄 Content <span class="pill">{{ items|length }}</span>
+  </div>
+  <div class="cf-item-grid">
+    {% for item in items %}
+    <div class="cf-item-card" data-testid="card-item-{{ item.id }}">
+      <div class="cf-item-preview"
+        {% if item.type in ('youtube','youtube_live') and item.url %}
+          onclick='cfOpenViewer({{ item.type|tojson }},{{ item.url|tojson }},"","{{ item.title|e }}")'
+        {% elif item.type == 'video' and item.file_path %}
+          onclick='cfOpenViewer("video","","{{ url_for("static", filename=item.file_path) }}","{{ item.title|e }}")'
+        {% elif item.type == 'video' and item.url %}
+          onclick='cfOpenViewer("video_url",{{ item.url|tojson }},"","{{ item.title|e }}")'
+        {% elif item.type == 'photo' and item.file_path %}
+          onclick='cfOpenViewer("photo","","{{ url_for("static", filename=item.file_path) }}","{{ item.title|e }}")'
+        {% elif item.type == 'pdf' and item.file_path %}
+          onclick='openPdfViewer("{{ url_for("static", filename=item.file_path) }}","{{ item.title|e }}")'
+        {% elif item.type == 'iframe' and item.url %}
+          onclick='cfOpenViewer("iframe",{{ item.url|tojson }},"","{{ item.title|e }}")'
+        {% endif %}>
+        {% if item.type in ('youtube','youtube_live') and item.url %}
+          {% set ytid = item.url | extract_yt_id %}
+          {% if ytid %}
+            <img src="https://img.youtube.com/vi/{{ ytid }}/mqdefault.jpg" alt="" onerror="this.parentElement.innerHTML='🎬'"/>
+            <div class="cf-play-overlay"><div class="cf-play-btn">▶</div></div>
+          {% else %}🎬{% endif %}
+        {% elif item.type == 'photo' and item.file_path %}
+          <img src="{{ url_for('static', filename=item.file_path) }}" alt="{{ item.title }}"/>
+        {% elif item.type == 'video' %}
+          <span>📹</span>
+          {% if item.file_path or item.url %}<div class="cf-play-overlay"><div class="cf-play-btn">▶</div></div>{% endif %}
+        {% elif item.type == 'pdf' %}📄
+        {% elif item.type == 'link' %}🔗
+        {% elif item.type == 'iframe' %}🪟
+        {% else %}📎{% endif %}
+      </div>
+      <div class="cf-item-body">
+        <span class="cf-item-badge type-{{ item.type }}">{% if item.type == 'youtube_live' %}YouTube{% else %}{{ item.type.replace('_',' ') }}{% endif %}</span>
+        <div class="cf-item-title">{{ item.title }}</div>
+        {% if item.description %}<div class="cf-item-desc">{{ item.description }}</div>{% endif %}
+        <div class="cf-item-action">
+          {% if item.type in ('youtube','youtube_live') and item.url %}
+            <button class="cf-btn-view" onclick='cfOpenViewer({{ item.type|tojson }},{{ item.url|tojson }},"","{{ item.title|e }}")'>▶ Play</button>
+          {% elif item.type == 'video' and (item.file_path or item.url) %}
+            <button class="cf-btn-view" onclick='cfOpenViewer("video",{{ (item.url or "")|tojson }},"{{ url_for("static", filename=item.file_path) if item.file_path else "" }}","{{ item.title|e }}")'>▶ Play</button>
+          {% elif item.type == 'photo' and item.file_path %}
+            <button class="cf-btn-view" onclick='cfOpenViewer("photo","","{{ url_for("static", filename=item.file_path) }}","{{ item.title|e }}")'>👁 View</button>
+          {% elif item.type == 'pdf' and item.file_path %}
+            <button class="cf-btn-view" onclick='openPdfViewer("{{ url_for("static", filename=item.file_path) }}","{{ item.title|e }}")'>📄 Open</button>
+          {% elif item.type == 'link' and item.url %}
+            <a href="{{ item.url }}" target="_blank" class="cf-btn-view">🔗 Open Link</a>
+          {% elif item.type == 'iframe' and item.url %}
+            <button class="cf-btn-view" onclick='cfOpenViewer("iframe",{{ item.url|tojson }},"","{{ item.title|e }}")'>🪟 View Embed</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% elif not subfolders %}
+  <div class="cf-empty">
+    <div class="ef-icon">{{ folder.icon }}</div>
+    <h3>This folder is empty</h3>
+    <p>No content has been added here yet.</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Viewer Modal (for video/photo/link) -->
+<div class="cf-viewer-overlay" id="cfViewerModal">
+  <div class="cf-viewer-box">
+    <div class="cf-viewer-header">
+      <h3 id="cfViewerTitle"></h3>
+      <button class="cf-viewer-close" onclick="cfCloseViewer()">✕ Close</button>
+    </div>
+    <div class="cf-viewer-body" id="cfViewerBody"></div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function cfExtractYTId(url) {
+  for (const p of [/youtu\.be\/([^?&\s]+)/,/[?&]v=([^?&\s]+)/,/youtube\.com\/live\/([^?&\s]+)/,/youtube\.com\/embed\/([^?&\s]+)/]) {
+    const m = url.match(p); if (m) return m[1];
+  }
+  return null;
+}
+
+function cfOpenViewer(type, url, filePath, title) {
+  if (type === 'pdf') { openPdfViewer(filePath || url, title); return; }
+  document.getElementById('cfViewerTitle').textContent = title;
+  const body = document.getElementById('cfViewerBody');
+  let html = '';
+  if (type === 'youtube' || type === 'youtube_live') {
+    const id = cfExtractYTId(url);
+    html = id
+      ? `<iframe class="cf-viewer-iframe" src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`
+      : `<div class="cf-viewer-link"><a href="${url}" target="_blank">${url}</a></div>`;
+  } else if (type === 'photo') {
+    html = `<img class="cf-viewer-img" src="${filePath}" alt="${title}"/>`;
+  } else if (type === 'video' || type === 'video_url') {
+    const src = filePath || url;
+    html = `<video class="cf-viewer-video" controls autoplay src="${src}"></video>`;
+  } else if (type === 'link') {
+    html = `<div class="cf-viewer-link"><a href="${url}" target="_blank">${url}</a></div>`;
+  } else if (type === 'iframe') {
+    html = `<iframe class="cf-viewer-iframe" src="${url}" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
+  }
+  body.innerHTML = html;
+  document.getElementById('cfViewerModal').classList.add('open');
+}
+
+function cfCloseViewer() {
+  document.getElementById('cfViewerBody').innerHTML = '';
+  document.getElementById('cfViewerModal').classList.remove('open');
+}
+
+document.getElementById('cfViewerModal').addEventListener('click', function(e) {
+  if (e.target === this) cfCloseViewer();
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') cfCloseViewer();
+});
+</script>
+{% endblock %}

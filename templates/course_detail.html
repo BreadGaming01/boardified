@@ -3,6 +3,26 @@
 
 {% block extra_css %}
 <style>
+/* ── Notices ──────────────────────────────────────────── */
+.notices-wrap { display:flex; flex-direction:column; gap:0; }
+.notice-bar { width:100%; }
+.notice-bar-inner { max-width:1200px; margin:0 auto; padding:12px 28px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.notice-left { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+.notice-icon { font-size:1.2rem; flex-shrink:0; }
+.notice-text { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.notice-title { font-weight:700; font-size:0.9rem; color:#fff; }
+.notice-msg { font-size:0.8rem; color:rgba(255,255,255,.78); line-height:1.4; }
+.notice-btn { font-size:0.78rem; font-weight:700; padding:6px 16px; border-radius:20px; text-decoration:none; white-space:nowrap; flex-shrink:0; transition:opacity .15s; }
+.notice-btn:hover { opacity:.85; }
+.notice-live_class { background:linear-gradient(135deg,#7f1d1d,#991b1b); border-bottom:1px solid rgba(239,68,68,.3); }
+.notice-important { background:linear-gradient(135deg,#78350f,#92400e); border-bottom:1px solid rgba(249,115,22,.3); }
+.notice-info { background:linear-gradient(135deg,#1e3a5f,#1e40af); border-bottom:1px solid rgba(59,130,246,.3); }
+.notice-btn-live_class { background:rgba(239,68,68,.25); color:#fca5a5; border:1px solid rgba(239,68,68,.4); }
+.notice-btn-important { background:rgba(249,115,22,.25); color:#fdba74; border:1px solid rgba(249,115,22,.4); }
+.notice-btn-info { background:rgba(59,130,246,.25); color:#93c5fd; border:1px solid rgba(59,130,246,.4); }
+.notice-pulse { width:10px; height:10px; border-radius:50%; background:#ef4444; flex-shrink:0; animation:pulse-dot 1.5s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.6)} 50%{box-shadow:0 0 0 6px rgba(239,68,68,0)} }
+
 /* ── Library Styles ───────────────────────────────────── */
 .lib-folder-block { margin-bottom: 24px; }
 .lib-folder-header { display:flex; align-items:center; gap:10px; padding:10px 14px; background:rgba(255,255,255,.04); border-left:3px solid var(--fcolor,#6366f1); border-radius:0 8px 8px 0; margin-bottom:12px; }
@@ -23,6 +43,7 @@
 .type-pdf{background:rgba(239,68,68,.12);color:#fca5a5}
 .type-link{background:rgba(59,130,246,.15);color:#93c5fd}
 .type-photo{background:rgba(16,185,129,.15);color:#6ee7b7}
+.type-iframe{background:rgba(234,179,8,.15);color:#fde047}
 .lib-item-title { font-size:0.85rem; font-weight:700; color:var(--text); line-height:1.4; }
 .lib-item-desc { font-size:0.75rem; color:var(--text-muted); line-height:1.5; flex:1; }
 .lib-item-action { margin-top:6px; }
@@ -397,6 +418,29 @@
 .vp-ll-play-icon { font-size: 0.75rem; color: rgba(255,255,255,.3); flex-shrink: 0; }
 .vp-ll-item.active .vp-ll-play-icon { color: #818cf8; }
 
+/* ── Course Materials Folder Cards ───────────────────── */
+.mat-folder-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px;
+}
+.mat-folder-card {
+  position: relative; display: block; text-decoration: none;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px; overflow: hidden;
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+}
+.mat-folder-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: rgba(255,255,255,0.15); }
+.mat-folder-top-bar {
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--fcolor, #6366f1);
+}
+.mat-folder-icon { font-size: 2.2rem; margin-bottom: 10px; }
+.mat-folder-name { font-weight: 700; font-size: 0.95rem; color: var(--text); margin-bottom: 4px; }
+.mat-folder-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; }
+.mat-folder-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+.mat-folder-count { font-size: 0.75rem; color: var(--text-muted); }
+.mat-folder-arrow { font-size: 0.9rem; color: var(--fcolor, #6366f1); font-weight: 700; opacity: 0.7; transition: opacity 0.15s, transform 0.15s; }
+.mat-folder-card:hover .mat-folder-arrow { opacity: 1; transform: translateX(3px); }
+
 /* ── Watch button on lesson items ─────────────────────── */
 .lesson-action.vp-watch-btn {
   cursor: pointer; background: rgba(99,102,241,.15);
@@ -413,6 +457,29 @@
 
 {% block content %}
 <div class="course-detail-page">
+  <!-- Notices Banner -->
+  {% if notices %}
+  <div class="notices-wrap">
+    {% for n in notices %}
+    <div class="notice-bar notice-{{ n.type }}">
+      <div class="notice-bar-inner">
+        <div class="notice-left">
+          {% if n.type == 'live_class' %}<span class="notice-pulse"></span>{% endif %}
+          <span class="notice-icon">{{ '🔴' if n.type=='live_class' else '⚠️' if n.type=='important' else 'ℹ️' }}</span>
+          <div class="notice-text">
+            <span class="notice-title">{{ n.title }}</span>
+            {% if n.message %}<span class="notice-msg">{{ n.message }}</span>{% endif %}
+          </div>
+        </div>
+        {% if n.link %}
+        <a href="{{ n.link }}" target="_blank" rel="noopener" class="notice-btn notice-btn-{{ n.type }}">{{ n.link_text or 'Open' }} →</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <!-- Header -->
   <div class="detail-hero">
     <div class="detail-hero-inner">
@@ -489,51 +556,38 @@
       <div class="detail-section" id="materialsSection">
         <h2 class="detail-section-title">Course Materials</h2>
 
-        <div class="materials-search-wrap">
-          <span class="materials-search-icon">🔍</span>
-          <input type="text" id="materialsSearchInput" class="materials-search-input"
-                 placeholder="Search materials by title, type or description…"
-                 oninput="filterMaterials(this.value)"
-                 data-testid="input-materials-search"/>
-          <button class="materials-search-clear" id="materialsSearchClear"
-                  onclick="clearMaterialsSearch()" data-testid="button-clear-search">✕ Clear</button>
-        </div>
-        <div class="materials-search-result-count" id="materialsResultCount"></div>
-
-        <div id="materialsContent">
+        {% if lib_folders %}
+        <div class="mat-folder-grid">
           {% for folder in lib_folders %}
-          {% if folder.content %}
-          <div class="lib-folder-block" data-folder-block>
-            <div class="lib-folder-header" style="--fcolor:{{ folder.color }}">
-              <span class="lib-folder-icon">{{ folder.icon }}</span>
-              <span class="lib-folder-name">{{ folder.name }}</span>
-              <span class="lib-folder-count" data-folder-count>{{ folder.content|length }} item{{ 's' if folder.content|length != 1 else '' }}</span>
+          <a href="{{ url_for('course_folder_view', course_id=course.id, folder_id=folder.id) }}"
+             class="mat-folder-card" style="--fcolor:{{ folder.color }}"
+             data-testid="card-mat-folder-{{ folder.id }}">
+            <div class="mat-folder-top-bar"></div>
+            <div class="mat-folder-icon">{{ folder.icon }}</div>
+            <div class="mat-folder-name">{{ folder.name }}</div>
+            {% if folder.description %}<div class="mat-folder-desc">{{ folder.description }}</div>{% endif %}
+            <div class="mat-folder-meta">
+              <span class="mat-folder-count">{{ folder.item_count }} item{{ 's' if folder.item_count != 1 else '' }}</span>
+              <span class="mat-folder-arrow">→</span>
             </div>
-            <div class="lib-item-grid">
-              {% for item in folder.content %}{% include "partials/lib_item.html" %}{% endfor %}
-            </div>
-          </div>
-          {% endif %}
+          </a>
           {% endfor %}
-          {% if lib_uncategorized %}
-          <div class="lib-folder-block" data-folder-block>
-            <div class="lib-folder-header" style="--fcolor:#6366f1">
-              <span class="lib-folder-icon">📎</span>
-              <span class="lib-folder-name">Other Materials</span>
-              <span class="lib-folder-count" data-folder-count>{{ lib_uncategorized|length }} item{{ 's' if lib_uncategorized|length != 1 else '' }}</span>
-            </div>
-            <div class="lib-item-grid">
-              {% for item in lib_uncategorized %}{% include "partials/lib_item.html" %}{% endfor %}
-            </div>
-          </div>
-          {% endif %}
         </div>
+        {% endif %}
 
-        <div class="materials-no-results" id="materialsNoResults">
-          <div class="nr-icon">🔍</div>
-          <h4>No results found</h4>
-          <p>Try different keywords or clear the search to see all materials.</p>
+        {% if lib_uncategorized %}
+        <div style="margin-top:{% if lib_folders %}28px{% else %}0{% endif %}">
+          <div class="lib-folder-header" style="--fcolor:#6366f1; margin-bottom:12px;">
+            <span class="lib-folder-icon">📎</span>
+            <span class="lib-folder-name">Other Materials</span>
+            <span class="lib-folder-count">{{ lib_uncategorized|length }} item{{ 's' if lib_uncategorized|length != 1 else '' }}</span>
+          </div>
+          <div class="lib-item-grid">
+            {% for item in lib_uncategorized %}{% include "partials/lib_item.html" %}{% endfor %}
+          </div>
         </div>
+        {% endif %}
+
       </div>
       {% endif %}
 
@@ -872,7 +926,7 @@ function vpLoad(idx) {
    Render lesson attachments panel
 ══════════════════════════════════════════════════════════ */
 function vpAttIcon(item) {
-  const icons = { youtube:'🎬', youtube_live:'📡', video:'📹', pdf:'📄', photo:'🖼', link:'🔗' };
+  const icons = { youtube:'🎬', youtube_live:'📡', video:'📹', pdf:'📄', photo:'🖼', link:'🔗', iframe:'🪟' };
   return icons[item.type] || '📎';
 }
 
@@ -887,6 +941,8 @@ function vpAttClick(item) {
     openLibViewer('photo', '', '/static/' + item.file_path, item.title);
   } else if (item.type === 'link' && item.url) {
     window.open(item.url, '_blank');
+  } else if (item.type === 'iframe' && item.url) {
+    openLibViewer('iframe', item.url, '', item.title);
   }
 }
 
@@ -1422,7 +1478,8 @@ function openLibViewer(type, url, filePath, title) {
       : `<div class="lib-viewer-link"><a href="${url}" target="_blank">${url}</a></div>`;
   } else if (type==='photo') { html=`<img class="lib-viewer-img" src="${filePath}" alt="${title}"/>`;
   } else if (type==='video') { html=`<video class="lib-viewer-video" controls autoplay src="${filePath||url}"></video>`;
-  } else if (type==='link')  { html=`<div class="lib-viewer-link"><a href="${url}" target="_blank">${url}</a></div>`; }
+  } else if (type==='link')  { html=`<div class="lib-viewer-link"><a href="${url}" target="_blank">${url}</a></div>`;
+  } else if (type==='iframe'){ html=`<iframe class="lib-viewer-iframe" src="${url}" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`; }
   body.innerHTML = html;
   $('libViewerModal').classList.add('open');
 }

@@ -116,12 +116,14 @@ async function addToCart(courseId, btn) {
 .bpdf-overlay {
   position: fixed; inset: 0; background: #111118; z-index: 10000;
   display: none; flex-direction: column; font-family: 'Inter', sans-serif;
+  outline: none;
 }
 .bpdf-overlay.open { display: flex; }
 .bpdf-toolbar {
   display: flex; align-items: center; gap: 10px; flex-shrink: 0;
   padding: 10px 16px; background: rgba(0,0,0,0.55);
   border-bottom: 1px solid rgba(255,255,255,0.1);
+  flex-wrap: wrap;
 }
 .bpdf-title {
   flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 700; color: #e5e7eb;
@@ -131,7 +133,7 @@ async function addToCart(courseId, btn) {
   background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.13);
   color: rgba(255,255,255,0.75); border-radius: 7px; padding: 6px 13px;
   cursor: pointer; font-size: 0.78rem; font-weight: 700; transition: all 0.15s;
-  white-space: nowrap; font-family: inherit;
+  white-space: nowrap; font-family: inherit; text-decoration: none; display: inline-block;
 }
 .bpdf-btn:hover:not(:disabled) { background: rgba(99,102,241,0.3); color: #fff; border-color: rgba(99,102,241,0.5); }
 .bpdf-btn:disabled { opacity: 0.28; cursor: not-allowed; }
@@ -139,12 +141,19 @@ async function addToCart(courseId, btn) {
 .bpdf-sep { width: 1px; height: 22px; background: rgba(255,255,255,0.12); flex-shrink: 0; }
 .bpdf-page-info {
   font-size: 0.8rem; color: rgba(255,255,255,0.6); white-space: nowrap;
-  min-width: 60px; text-align: center;
+  min-width: 72px; text-align: center;
 }
 .bpdf-body {
   flex: 1; overflow-y: auto; display: flex;
   flex-direction: column; align-items: center;
-  padding: 28px 16px; background: #2a2a35; gap: 14px;
+  padding: 28px 16px; background: #2a2a35; gap: 18px;
+}
+.bpdf-page-wrap {
+  position: relative; width: 100%; display: flex; flex-direction: column; align-items: center;
+}
+.bpdf-page-num {
+  font-size: 0.7rem; color: rgba(255,255,255,0.3); margin-bottom: 6px;
+  font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
 }
 .bpdf-canvas {
   box-shadow: 0 8px 48px rgba(0,0,0,0.6); border-radius: 3px; display: block; max-width: 100%;
@@ -154,7 +163,7 @@ async function addToCart(courseId, btn) {
   text-align: center; padding: 60px 20px; width: 100%;
 }
 .bpdf-status a { color: #93c5fd; }
-.bpdf-status .bpdf-spinner {
+.bpdf-spinner {
   width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1);
   border-top-color: #818cf8; border-radius: 50%;
   animation: bpdf-spin 0.8s linear infinite; margin: 0 auto 16px;
@@ -162,18 +171,17 @@ async function addToCart(courseId, btn) {
 @keyframes bpdf-spin { to { transform: rotate(360deg); } }
 </style>
 
-<div class="bpdf-overlay" id="bpdfOverlay">
+<div class="bpdf-overlay" id="bpdfOverlay" tabindex="-1">
   <div class="bpdf-toolbar">
-    <button class="bpdf-btn bpdf-btn-close" onclick="bpdfClose()" title="Close">✕ Close</button>
+    <button class="bpdf-btn bpdf-btn-close" onclick="bpdfClose()" title="Close (Esc)">✕ Close</button>
     <div class="bpdf-sep"></div>
     <span class="bpdf-title" id="bpdfTitle">Document</span>
     <div class="bpdf-sep"></div>
-    <button class="bpdf-btn" id="bpdfPrev" onclick="bpdfPrevPage()" disabled>← Prev</button>
     <span class="bpdf-page-info" id="bpdfPageInfo">— / —</span>
-    <button class="bpdf-btn" id="bpdfNext" onclick="bpdfNextPage()" disabled>Next →</button>
     <div class="bpdf-sep"></div>
-    <button class="bpdf-btn" onclick="bpdfZoom(-0.25)" title="Zoom out">−</button>
-    <button class="bpdf-btn" onclick="bpdfZoom(0.25)" title="Zoom in">+</button>
+    <button class="bpdf-btn" onclick="bpdfZoom(-0.25)" title="Zoom out">− Zoom</button>
+    <button class="bpdf-btn" onclick="bpdfZoom(0.25)" title="Zoom in">+ Zoom</button>
+    <button class="bpdf-btn" onclick="bpdfFitWidth()" title="Fit to width">↔ Fit</button>
     <div class="bpdf-sep"></div>
     <a id="bpdfDownload" class="bpdf-btn" download title="Download PDF">⬇ Download</a>
   </div>
@@ -189,78 +197,103 @@ async function addToCart(courseId, btn) {
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   }
 
-  let _doc = null, _page = 1, _total = 0, _scale = 1.4, _busy = false, _url = '';
+  let _doc = null, _total = 0, _scale = 1.4, _renderToken = 0, _url = '';
 
   window.openPdfViewer = async function(url, title) {
+    if (!url) return;
     _url = url;
-    _page = 1; _scale = 1.4;
+    _scale = 1.4;
+    _renderToken++;
     document.getElementById('bpdfTitle').textContent = title || 'Document';
     document.getElementById('bpdfDownload').href = url;
-    document.getElementById('bpdfOverlay').classList.add('open');
+    const overlay = document.getElementById('bpdfOverlay');
+    overlay.classList.add('open');
+    overlay.focus();
     _showStatus('<div class="bpdf-spinner"></div>Loading PDF…');
 
     try {
-      _doc = await pdfjsLib.getDocument(url).promise;
+      _doc = await pdfjsLib.getDocument({ url: url, cMapPacked: true }).promise;
       _total = _doc.numPages;
-      _updateControls();
-      await _render(_page);
+      document.getElementById('bpdfPageInfo').textContent = _total + ' page' + (_total !== 1 ? 's' : '');
+      await _renderAll(_renderToken);
     } catch(err) {
-      _showStatus('Could not render this PDF in the browser. <br><a href="' + url + '" target="_blank">Open in new tab ↗</a>');
+      console.error('PDF load error:', err);
+      _showStatus(
+        '⚠ Could not render this PDF.<br><br>' +
+        '<a href="' + url + '" target="_blank" style="color:#93c5fd">Open in new tab ↗</a>'
+      );
     }
   };
 
   window.bpdfClose = function() {
+    _renderToken++;
+    _doc = null; _total = 0;
     document.getElementById('bpdfOverlay').classList.remove('open');
     document.getElementById('bpdfBody').innerHTML = '';
-    _doc = null; _page = 1; _total = 0;
+    document.getElementById('bpdfPageInfo').textContent = '— / —';
   };
 
-  window.bpdfPrevPage = function() { if (_page > 1) { _page--; _render(_page); } };
-  window.bpdfNextPage = function() { if (_page < _total) { _page++; _render(_page); } };
-  window.bpdfZoom = function(delta) {
-    _scale = Math.max(0.5, Math.min(3.5, _scale + delta));
-    _render(_page);
+  window.bpdfZoom = async function(delta) {
+    if (!_doc) return;
+    _scale = Math.max(0.4, Math.min(4.0, _scale + delta));
+    _renderToken++;
+    await _renderAll(_renderToken);
   };
 
-  function _updateControls() {
-    document.getElementById('bpdfPageInfo').textContent = _page + ' / ' + _total;
-    document.getElementById('bpdfPrev').disabled = _page <= 1;
-    document.getElementById('bpdfNext').disabled = _page >= _total;
-  }
-
-  async function _render(num) {
-    if (_busy || !_doc) return;
-    _busy = true;
+  window.bpdfFitWidth = async function() {
+    if (!_doc) return;
     try {
-      const page = await _doc.getPage(num);
-      const vp = page.getViewport({ scale: _scale });
-      const body = document.getElementById('bpdfBody');
-      let canvas = document.getElementById('bpdfCanvas');
-      if (!canvas) {
-        body.innerHTML = '';
-        canvas = document.createElement('canvas');
-        canvas.id = 'bpdfCanvas';
-        canvas.className = 'bpdf-canvas';
-        body.appendChild(canvas);
+      const page = await _doc.getPage(1);
+      const bodyW = document.getElementById('bpdfBody').clientWidth - 32;
+      const vp = page.getViewport({ scale: 1 });
+      _scale = Math.max(0.4, Math.min(4.0, bodyW / vp.width));
+      _renderToken++;
+      await _renderAll(_renderToken);
+    } catch(e) { console.error('Fit-width error:', e); }
+  };
+
+  async function _renderAll(token) {
+    if (!_doc) return;
+    const body = document.getElementById('bpdfBody');
+    body.innerHTML = '';
+
+    for (let num = 1; num <= _total; num++) {
+      if (token !== _renderToken) return;
+
+      const wrap = document.createElement('div');
+      wrap.className = 'bpdf-page-wrap';
+      const lbl = document.createElement('div');
+      lbl.className = 'bpdf-page-num';
+      lbl.textContent = 'Page ' + num + ' of ' + _total;
+      const canvas = document.createElement('canvas');
+      canvas.className = 'bpdf-canvas';
+      wrap.appendChild(lbl);
+      wrap.appendChild(canvas);
+      body.appendChild(wrap);
+
+      try {
+        const page = await _doc.getPage(num);
+        if (token !== _renderToken) return;
+        const vp = page.getViewport({ scale: _scale });
+        canvas.width = vp.width;
+        canvas.height = vp.height;
+        await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+      } catch(e) {
+        console.error('Page render error (page ' + num + '):', e);
+        canvas.parentElement.innerHTML += '<div class="bpdf-status" style="padding:20px">⚠ Could not render page ' + num + '</div>';
       }
-      canvas.width = vp.width; canvas.height = vp.height;
-      await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-      _updateControls();
-    } catch(e) { /* silent */ }
-    _busy = false;
+    }
   }
 
   function _showStatus(html) {
     document.getElementById('bpdfBody').innerHTML = '<div class="bpdf-status">' + html + '</div>';
     document.getElementById('bpdfPageInfo').textContent = '— / —';
-    document.getElementById('bpdfPrev').disabled = true;
-    document.getElementById('bpdfNext').disabled = true;
   }
 
   document.getElementById('bpdfOverlay').addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') bpdfClose();
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') bpdfNextPage();
-    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   bpdfPrevPage();
+    if (e.key === 'Escape') { e.preventDefault(); bpdfClose(); }
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); bpdfZoom(0.25); }
+    if (e.key === '-') { e.preventDefault(); bpdfZoom(-0.25); }
   });
 })();
 </script>
