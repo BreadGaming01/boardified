@@ -1,4 +1,4 @@
-from main import app
+from flask_app import app
 
 application = app
 
