@@ -61,6 +61,7 @@ def load_db():
     if "folders" not in db: db["folders"] = []
     if "content_items" not in db: db["content_items"] = []
     if "coupons" not in db: db["coupons"] = []
+    if "notices" not in db: db["notices"] = []
     return db
 
 def save_db(data):
@@ -301,20 +302,63 @@ def course_detail(course_id):
     item_map = {}
     folder_map = {}
     if purchased or is_admin:
-        folders = [f for f in db["folders"] if f.get("course_id") == course_id]
+        all_folders = [f for f in db["folders"] if f.get("course_id") == course_id]
         all_items = db["content_items"]
-        for f in folders:
-            f["content"] = [i for i in all_items if i.get("folder_id") == f["id"]]
-        lib_folders = folders
+        top_folders = [f for f in all_folders if not f.get("parent_folder_id")]
+        for f in top_folders:
+            f["item_count"] = sum(1 for i in all_items if i.get("folder_id") == f["id"])
+        lib_folders = top_folders
         lib_uncategorized = [i for i in all_items if not i.get("folder_id") and i.get("course_id") == course_id]
-        course_folder_ids = {f["id"] for f in folders}
+        course_folder_ids = {f["id"] for f in all_folders}
         item_map   = {i["id"]: i for i in all_items
                       if i.get("course_id") == course_id
                       or i.get("folder_id") in course_folder_ids}
-        folder_map = {f["id"]: f for f in folders}
+        folder_map = {f["id"]: f for f in all_folders}
+    notices = [n for n in db["notices"]
+               if n.get("course_id") == course_id and n.get("is_active", True)]
+    notices.sort(key=lambda n: (0 if n.get("type") == "live_class" else 1 if n.get("type") == "important" else 2,
+                                n.get("created_at", "")), reverse=False)
+    all_notices = [n for n in db["notices"] if n.get("course_id") == course_id] if is_admin else []
     return render_template("course_detail.html", course=course, purchased=purchased,
                            lib_folders=lib_folders, lib_uncategorized=lib_uncategorized,
-                           item_map=item_map, folder_map=folder_map)
+                           item_map=item_map, folder_map=folder_map,
+                           notices=notices, all_notices=all_notices)
+
+@app.route("/course/<course_id>/folder/<folder_id>")
+def course_folder_view(course_id, folder_id):
+    db = load_db()
+    course = next((c for c in db["courses"] if c["id"] == course_id), None)
+    if not course:
+        flash("Course not found.", "danger")
+        return redirect(url_for("index"))
+    is_admin = session.get("role") == "admin"
+    purchased = False
+    if "user_id" in session:
+        purchased = any(p["course_id"] == course_id and p["user_id"] == session["user_id"]
+                        and p["status"] == "paid" for p in db["purchases"])
+    if not purchased and not is_admin:
+        flash("Please enroll in this course to access its materials.", "warning")
+        return redirect(url_for("course_detail", course_id=course_id))
+    folder = next((f for f in db["folders"] if f["id"] == folder_id and f.get("course_id") == course_id), None)
+    if not folder:
+        flash("Folder not found.", "danger")
+        return redirect(url_for("course_detail", course_id=course_id))
+    parent = None
+    if folder.get("parent_folder_id"):
+        parent = next((f for f in db["folders"] if f["id"] == folder["parent_folder_id"]), None)
+    subfolders = [f for f in db["folders"] if f.get("parent_folder_id") == folder_id and f.get("course_id") == course_id]
+    all_items = db["content_items"]
+    for sf in subfolders:
+        sf["item_count"] = sum(1 for i in all_items if i.get("folder_id") == sf["id"])
+    items = sorted([i for i in all_items if i.get("folder_id") == folder_id],
+                   key=lambda x: x.get("order", 0))
+    notices = [n for n in db["notices"]
+               if n.get("course_id") == course_id and n.get("is_active", True)]
+    notices.sort(key=lambda n: (0 if n.get("type") == "live_class" else 1 if n.get("type") == "important" else 2))
+    return render_template("course_folder.html", course=course, folder=folder,
+                           notices=notices,
+                           parent=parent, subfolders=subfolders, items=items,
+                           purchased=purchased)
 
 @app.route("/my-courses")
 @login_required
@@ -830,12 +874,14 @@ def admin_lessons(course_id):
     # Load library folders and items for this course (for attachment picker)
     lib_folders = [f for f in db["folders"] if f.get("course_id") == course_id]
     lib_items   = [i for i in db["content_items"] if i.get("course_id") == course_id]
-    # Build a lookup for quick display in template
     item_map  = {i["id"]: i for i in db["content_items"]}
     folder_map = {f["id"]: f for f in db["folders"]}
+    course_notices = sorted([n for n in db["notices"] if n.get("course_id") == course_id],
+                            key=lambda n: n.get("created_at", ""), reverse=True)
     return render_template("admin/lessons.html", course=course,
                            lib_folders=lib_folders, lib_items=lib_items,
-                           item_map=item_map, folder_map=folder_map)
+                           item_map=item_map, folder_map=folder_map,
+                           course_notices=course_notices)
 
 
 @app.route("/admin/courses/<course_id>/lessons/<lesson_id>/attachments", methods=["POST"])
@@ -1117,7 +1163,8 @@ def admin_course_folder(course_id, folder_id):
     if not course or not folder:
         flash("Not found.", "danger")
         return redirect(url_for("admin_course_library", course_id=course_id))
-    items = [i for i in db["content_items"] if i.get("folder_id") == folder_id]
+    items = sorted([i for i in db["content_items"] if i.get("folder_id") == folder_id],
+                   key=lambda x: x.get("order", 0))
     subfolders = [f for f in db["folders"] if f.get("parent_folder_id") == folder_id and f.get("course_id") == course_id]
     for sf in subfolders:
         sf["item_count"] = sum(1 for i in db["content_items"] if i.get("folder_id") == sf["id"])
@@ -1183,7 +1230,7 @@ def admin_course_add_content(course_id):
         flash("Title is required.", "danger")
         return redirect(back)
 
-    if ctype in ("youtube", "youtube_live", "link") and not url_input:
+    if ctype in ("youtube", "youtube_live", "link", "iframe") and not url_input:
         flash("A URL is required for this content type.", "danger")
         return redirect(back)
 
@@ -1211,6 +1258,10 @@ def admin_course_add_content(course_id):
             flash(f"Please provide a {'PDF' if ctype == 'pdf' else 'photo'} file.", "danger")
             return redirect(back)
 
+    existing_in_scope = [i for i in db["content_items"]
+                         if i.get("folder_id") == folder_id and i.get("course_id") == course_id]
+    new_order = max((i.get("order", 0) for i in existing_in_scope), default=-1) + 1
+
     db["content_items"].append({
         "id": str(uuid.uuid4()),
         "folder_id": folder_id,
@@ -1221,6 +1272,7 @@ def admin_course_add_content(course_id):
         "url": url_input or None,
         "file_path": file_path,
         "file_name": file_name,
+        "order": new_order,
         "created_at": now()
     })
     save_db(db)
@@ -1259,6 +1311,108 @@ def admin_course_move_content(course_id, item_id):
             if new_folder_id else url_for("admin_course_library", course_id=course_id))
     return redirect(back)
 
+@app.route("/admin/courses/<course_id>/library/content/<item_id>/reorder", methods=["POST"])
+@admin_required
+def admin_course_reorder_content(course_id, item_id):
+    db = load_db()
+    direction = request.form.get("direction", "")
+    target = next((i for i in db["content_items"] if i["id"] == item_id), None)
+    if not target:
+        flash("Item not found.", "danger")
+        folder_id = request.form.get("folder_id") or None
+        back = (url_for("admin_course_folder", course_id=course_id, folder_id=folder_id)
+                if folder_id else url_for("admin_course_library", course_id=course_id))
+        return redirect(back)
+
+    folder_id = target.get("folder_id")
+    siblings = sorted(
+        [i for i in db["content_items"] if i.get("folder_id") == folder_id and i.get("course_id") == course_id],
+        key=lambda x: x.get("order", 0)
+    )
+    # Normalise orders so they are 0,1,2,...
+    for idx, s in enumerate(siblings):
+        s["order"] = idx
+
+    pos = next((idx for idx, s in enumerate(siblings) if s["id"] == item_id), None)
+    if pos is not None:
+        if direction == "up" and pos > 0:
+            siblings[pos]["order"], siblings[pos - 1]["order"] = siblings[pos - 1]["order"], siblings[pos]["order"]
+        elif direction == "down" and pos < len(siblings) - 1:
+            siblings[pos]["order"], siblings[pos + 1]["order"] = siblings[pos + 1]["order"], siblings[pos]["order"]
+
+    save_db(db)
+    back = (url_for("admin_course_folder", course_id=course_id, folder_id=folder_id)
+            if folder_id else url_for("admin_course_library", course_id=course_id))
+    return redirect(back)
+
+
+# ─── Admin Notice Routes ──────────────────────────────────────────────────────
+
+@app.route("/admin/courses/<course_id>/notices/add", methods=["POST"])
+@admin_required
+def admin_course_add_notice(course_id):
+    db = load_db()
+    title    = request.form.get("title", "").strip()
+    message  = request.form.get("message", "").strip()
+    ntype    = request.form.get("ntype", "info").strip()
+    link     = request.form.get("link", "").strip() or None
+    link_text = request.form.get("link_text", "").strip() or "Open"
+    if not title:
+        flash("Notice title is required.", "danger")
+        return redirect(url_for("admin_lessons", course_id=course_id))
+    db["notices"].append({
+        "id": str(uuid.uuid4()),
+        "course_id": course_id,
+        "type": ntype,
+        "title": title,
+        "message": message,
+        "link": link,
+        "link_text": link_text,
+        "is_active": True,
+        "created_at": now()
+    })
+    save_db(db)
+    flash("Notice added.", "success")
+    return redirect(url_for("admin_lessons", course_id=course_id))
+
+@app.route("/admin/courses/<course_id>/notices/<notice_id>/delete", methods=["POST"])
+@admin_required
+def admin_course_delete_notice(course_id, notice_id):
+    db = load_db()
+    db["notices"] = [n for n in db["notices"] if n["id"] != notice_id]
+    save_db(db)
+    flash("Notice deleted.", "info")
+    return redirect(url_for("admin_lessons", course_id=course_id))
+
+@app.route("/admin/courses/<course_id>/notices/<notice_id>/toggle", methods=["POST"])
+@admin_required
+def admin_course_toggle_notice(course_id, notice_id):
+    db = load_db()
+    for n in db["notices"]:
+        if n["id"] == notice_id:
+            n["is_active"] = not n.get("is_active", True)
+    save_db(db)
+    return redirect(url_for("admin_lessons", course_id=course_id))
+
+@app.route("/admin/courses/<course_id>/notices/<notice_id>/edit", methods=["POST"])
+@admin_required
+def admin_course_edit_notice(course_id, notice_id):
+    db = load_db()
+    title    = request.form.get("title", "").strip()
+    message  = request.form.get("message", "").strip()
+    ntype    = request.form.get("ntype", "info").strip()
+    link     = request.form.get("link", "").strip() or None
+    link_text = request.form.get("link_text", "").strip() or "Open"
+    for n in db["notices"]:
+        if n["id"] == notice_id:
+            if title: n["title"] = title
+            n["message"]   = message
+            n["type"]      = ntype
+            n["link"]      = link
+            n["link_text"] = link_text
+    save_db(db)
+    flash("Notice updated.", "success")
+    return redirect(url_for("admin_lessons", course_id=course_id))
 
 # ─── Admin Coupon Routes ──────────────────────────────────────────────────────
 
@@ -1382,4 +1536,4 @@ def request_entity_too_large(e):
     return redirect(request.referrer or url_for("admin_library"))
 
 if __name__ == "__main__":
-    app.run(port=6000)
+    app.run(host="0.0.0.0", port=5000, debug=True)
