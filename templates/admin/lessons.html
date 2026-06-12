@@ -63,6 +63,21 @@
   cursor: pointer; white-space: nowrap; transition: background .15s;
 }
 .att-toggle-btn:hover, .att-toggle-btn.active { background: rgba(99,102,241,.2); color: #c4c7ff; }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:200; display:none; align-items:center; justify-content:center; }
+.modal-overlay.open { display:flex; }
+.modal-box { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px; width:100%; max-width:500px; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-lg); }
+.modal-box h2 { font-size:1.2rem; font-weight:800; margin-bottom:20px; }
+.modal-field { margin-bottom:16px; }
+.modal-label { display:block; font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); margin-bottom:6px; }
+.modal-input,.modal-select,.modal-textarea { width:100%; background:rgba(255,255,255,.04); border:1.5px solid var(--border); border-radius:9px; padding:10px 14px; color:var(--text); font-size:0.88rem; outline:none; transition:border-color .2s; }
+.modal-input:focus,.modal-select:focus,.modal-textarea:focus { border-color:var(--primary); }
+.modal-textarea { resize:vertical; min-height:60px; }
+.modal-select option { background:var(--bg-card); }
+.modal-footer { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+.btn-cancel { background:rgba(255,255,255,.06); border:1px solid var(--border); color:var(--text-muted); padding:9px 18px; border-radius:8px; font-weight:600; cursor:pointer; }
+.btn-cancel:hover { background:rgba(255,255,255,.1); }
+.btn-submit { background:linear-gradient(135deg,var(--primary),var(--primary-dark)); color:#fff; border:none; padding:9px 22px; border-radius:8px; font-weight:700; cursor:pointer; }
+.btn-submit:hover { filter:brightness(1.1); }
 </style>
 {% endblock %}
 
@@ -77,6 +92,122 @@
     <div style="display:flex;gap:10px;">
       <a href="{{ url_for('admin_course_library', course_id=course.id) }}" class="btn btn-outline" data-testid="link-course-library">📂 Content Library</a>
       <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline" data-testid="link-preview-course">Preview Course</a>
+    </div>
+  </div>
+
+  <!-- ── Notices & Live Classes ─────────────────────────────── -->
+  <div class="form-card" style="margin-bottom:28px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+      <h2 class="form-card-title" style="margin:0;">📢 Notices &amp; Live Classes</h2>
+      <button class="btn btn-outline" style="font-size:0.8rem;padding:6px 14px;" onclick="toggleSection('noticeForm')">+ Add Notice</button>
+    </div>
+
+    <!-- Add Notice Form -->
+    <div id="noticeForm" style="display:none;border-top:1px solid var(--border);padding-top:18px;margin-bottom:18px;">
+      <form method="POST" action="{{ url_for('admin_course_add_notice', course_id=course.id) }}">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Type</label>
+            <select name="ntype" class="form-input" style="padding:8px 12px;">
+              <option value="live_class">🔴 Live Class</option>
+              <option value="important">⚠️ Important</option>
+              <option value="info" selected>ℹ️ Info / Notice</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Title *</label>
+            <input type="text" name="title" class="form-input" placeholder="e.g. Live class at 7 PM today" required/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Message</label>
+          <textarea name="message" class="form-input form-textarea" rows="2" placeholder="Additional details…"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:14px;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Link URL (optional)</label>
+            <input type="url" name="link" class="form-input" placeholder="https://meet.google.com/…"/>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Button Text</label>
+            <input type="text" name="link_text" class="form-input" placeholder="Join Now" value="Join Now"/>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Post Notice</button>
+      </form>
+    </div>
+
+    <!-- Existing Notices -->
+    {% if course_notices %}
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      {% for notice in course_notices %}
+      <div style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-left:3px solid {{ '#ef4444' if notice.type=='live_class' else '#f97316' if notice.type=='important' else '#3b82f6' }};border-radius:8px;padding:12px 14px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:99px;background:{{ 'rgba(239,68,68,.18)' if notice.type=='live_class' else 'rgba(249,115,22,.18)' if notice.type=='important' else 'rgba(59,130,246,.18)' }};color:{{ '#f87171' if notice.type=='live_class' else '#fb923c' if notice.type=='important' else '#93c5fd' }};">{{ '🔴 Live Class' if notice.type=='live_class' else '⚠️ Important' if notice.type=='important' else 'ℹ️ Info' }}</span>
+              {% if not notice.is_active %}<span style="font-size:0.7rem;color:var(--text-dim);font-style:italic;">hidden</span>{% endif %}
+            </div>
+            <div style="font-weight:700;font-size:0.9rem;color:var(--text);margin-bottom:2px;">{{ notice.title }}</div>
+            {% if notice.message %}<div style="font-size:0.8rem;color:var(--text-muted);">{{ notice.message }}</div>{% endif %}
+            {% if notice.link %}<div style="font-size:0.75rem;color:var(--primary-light);margin-top:4px;">🔗 {{ notice.link_text }} → {{ notice.link[:60] }}{% if notice.link|length > 60 %}…{% endif %}</div>{% endif %}
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0;align-items:center;">
+            <form method="POST" action="{{ url_for('admin_course_toggle_notice', course_id=course.id, notice_id=notice.id) }}" style="margin:0;">
+              <button type="submit" style="font-size:0.72rem;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-muted);cursor:pointer;" title="{{ 'Hide' if notice.is_active else 'Show' }}">{{ '👁 Hide' if notice.is_active else '👁 Show' }}</button>
+            </form>
+            <button onclick="openEditNotice('{{ notice.id }}','{{ notice.type }}',{{ notice.title|tojson }},{{ (notice.message or '')|tojson }},{{ (notice.link or '')|tojson }},{{ (notice.link_text or 'Open')|tojson }})" style="font-size:0.72rem;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-muted);cursor:pointer;">✏️ Edit</button>
+            <form method="POST" action="{{ url_for('admin_course_delete_notice', course_id=course.id, notice_id=notice.id) }}" style="margin:0;" onsubmit="return confirm('Delete this notice?')">
+              <button type="submit" style="font-size:0.72rem;padding:4px 10px;border-radius:6px;border:1px solid rgba(239,68,68,.3);background:none;color:#f87171;cursor:pointer;">🗑 Delete</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:var(--text-muted);font-size:0.85rem;font-style:italic;margin:0;">No notices yet. Add one above to alert students.</p>
+    {% endif %}
+  </div>
+
+  <!-- Edit Notice Modal -->
+  <div class="modal-overlay" id="editNoticeModal">
+    <div class="modal-box" style="max-width:480px;">
+      <h2>✏️ Edit Notice</h2>
+      <form method="POST" id="editNoticeForm" action="">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div class="modal-field" style="margin:0;">
+            <label class="modal-label">Type</label>
+            <select name="ntype" id="editNtype" class="modal-select">
+              <option value="live_class">🔴 Live Class</option>
+              <option value="important">⚠️ Important</option>
+              <option value="info">ℹ️ Info / Notice</option>
+            </select>
+          </div>
+          <div class="modal-field" style="margin:0;">
+            <label class="modal-label">Title *</label>
+            <input type="text" name="title" id="editNtitle" class="modal-input" required/>
+          </div>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Message</label>
+          <textarea name="message" id="editNmessage" class="modal-textarea" rows="3"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:14px;">
+          <div class="modal-field" style="margin:0;">
+            <label class="modal-label">Link URL</label>
+            <input type="url" name="link" id="editNlink" class="modal-input"/>
+          </div>
+          <div class="modal-field" style="margin:0;">
+            <label class="modal-label">Button Text</label>
+            <input type="text" name="link_text" id="editNlinkText" class="modal-input"/>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="document.getElementById('editNoticeModal').classList.remove('open')">Cancel</button>
+          <button type="submit" class="btn-submit">Save Changes</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -247,8 +378,22 @@ function toggleAttPanel(id) {
   const open  = panel.classList.toggle('open');
   btn.classList.toggle('active', open);
 }
-
-/* Auto-scroll to lesson anchor on page load (after attach/detach redirect) */
+function toggleSection(id) {
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+function openEditNotice(id, type, title, message, link, linkText) {
+  document.getElementById('editNoticeForm').action = '/admin/courses/{{ course.id }}/notices/' + id + '/edit';
+  document.getElementById('editNtype').value = type;
+  document.getElementById('editNtitle').value = title;
+  document.getElementById('editNmessage').value = message;
+  document.getElementById('editNlink').value = link;
+  document.getElementById('editNlinkText').value = linkText;
+  document.getElementById('editNoticeModal').classList.add('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
 window.addEventListener('load', () => {
   if (location.hash) {
     const el = document.querySelector(location.hash);

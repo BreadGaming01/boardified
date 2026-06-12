@@ -25,6 +25,9 @@
 .type-pdf{background:rgba(239,68,68,.12);color:#fca5a5}
 .type-link{background:rgba(59,130,246,.15);color:#93c5fd}
 .type-photo{background:rgba(16,185,129,.15);color:#6ee7b7}
+.type-iframe{background:rgba(234,179,8,.15);color:#fde047}
+.btn-reorder { background:rgba(255,255,255,.07); color:var(--text-muted); }
+.btn-reorder:hover { background:rgba(255,255,255,.14); }
 .item-title { font-size:0.88rem; font-weight:700; color:var(--text); margin-bottom:4px; line-height:1.4; }
 .item-desc  { font-size:0.76rem; color:var(--text-muted); line-height:1.5; flex:1; margin-bottom:10px; }
 .item-date  { font-size:0.7rem; color:var(--text-dim); margin-bottom:8px; }
@@ -154,6 +157,8 @@
            onclick="openViewer('video','','{{ url_for('static', filename=item.file_path) }}','{{ item.title|e }}')"
            {% elif item.type == 'video' and item.url %}
            onclick="openViewer('video_url',{{ item.url|tojson }},'','{{ item.title|e }}')"
+           {% elif item.type == 'iframe' and item.url %}
+           onclick="openViewer('iframe',{{ item.url|tojson }},'','{{ item.title|e }}')"
            {% endif %}>
         {% if item.type in ('youtube','youtube_live') and item.url %}
           {% set ytid = item.url | extract_yt_id %}
@@ -168,6 +173,7 @@
           {% if item.file_path or item.url %}<div class="play-overlay"><div class="play-btn">▶</div></div>{% endif %}
         {% elif item.type == 'pdf' %}📄
         {% elif item.type == 'link' %}🔗
+        {% elif item.type == 'iframe' %}🪟
         {% else %}📎{% endif %}
       </div>
       <div class="item-body">
@@ -190,7 +196,22 @@
                   onclick="openViewer('video',{{ (item.url or '')|tojson }},'{{ url_for('static', filename=item.file_path) if item.file_path else '' }}','{{ item.title|e }}')">▶ Play</button>
           {% elif item.type == 'link' and item.url %}
           <a href="{{ item.url }}" target="_blank" class="item-action-btn btn-view">🔗 Open</a>
+          {% elif item.type == 'iframe' and item.url %}
+          <button class="item-action-btn btn-view"
+                  onclick="openViewer('iframe',{{ item.url|tojson }},'','{{ item.title|e }}')">🪟 Preview</button>
           {% endif %}
+          <form method="POST" action="{{ url_for('admin_course_reorder_content', course_id=course.id, item_id=item.id) }}"
+                style="display:inline">
+            <input type="hidden" name="direction" value="up"/>
+            <input type="hidden" name="folder_id" value="{{ folder.id }}"/>
+            <button type="submit" class="item-action-btn btn-reorder" title="Move up">↑</button>
+          </form>
+          <form method="POST" action="{{ url_for('admin_course_reorder_content', course_id=course.id, item_id=item.id) }}"
+                style="display:inline">
+            <input type="hidden" name="direction" value="down"/>
+            <input type="hidden" name="folder_id" value="{{ folder.id }}"/>
+            <button type="submit" class="item-action-btn btn-reorder" title="Move down">↓</button>
+          </form>
           <button class="item-action-btn btn-move"
                   onclick="openMoveModal('{{ item.id }}')"
                   data-testid="button-move-item-{{ item.id }}">↗ Move</button>
@@ -260,6 +281,7 @@
           <button type="button" class="type-tab" onclick="setType('pdf',this)">📄 PDF</button>
           <button type="button" class="type-tab" onclick="setType('photo',this)">🖼️ Photo</button>
           <button type="button" class="type-tab" onclick="setType('link',this)">🔗 Link</button>
+          <button type="button" class="type-tab" onclick="setType('iframe',this)">🪟 Embed</button>
         </div>
       </div>
       <div class="modal-field">
@@ -295,6 +317,11 @@
       <div class="type-fields" id="fields-photo">
         <div class="modal-field"><label class="modal-label">Image File</label>
         <input type="file" name="file" class="modal-input" accept=".jpg,.jpeg,.png,.gif,.webp"/></div>
+      </div>
+      <div class="type-fields" id="fields-iframe">
+        <div class="modal-field"><label class="modal-label">Embed URL (iframe src)</label>
+        <input type="url" name="url" class="modal-input" placeholder="https://example.com/embed/..."/>
+        <p style="font-size:0.74rem;color:var(--text-muted);margin-top:5px;">The URL will be loaded inside an embedded frame. Make sure the source allows embedding.</p></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-cancel" onclick="closeModal('contentModal')">Cancel</button>
@@ -388,7 +415,7 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target===m) m.classList.remove('open'); });
 });
-const typeAllIds=['youtube','youtube_live','video','pdf','photo','link'];
+const typeAllIds=['youtube','youtube_live','video','pdf','photo','link','iframe'];
 function setType(type,btn) {
   document.getElementById('contentTypeInput').value=type;
   document.querySelectorAll('.type-tab').forEach(t=>t.classList.remove('active'));
@@ -432,6 +459,8 @@ function openViewer(type,url,filePath,title) {
     html=`<video class="viewer-video" controls autoplay src="${src}"></video>`;
   } else if(type==='link'){
     html=`<div class="viewer-link"><a href="${url}" target="_blank">${url}</a></div>`;
+  } else if(type==='iframe'){
+    html=`<iframe class="viewer-iframe" src="${url}" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
   }
   body.innerHTML=html;
   document.getElementById('viewerModal').classList.add('open');
