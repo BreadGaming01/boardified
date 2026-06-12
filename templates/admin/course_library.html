@@ -171,6 +171,14 @@
         <span class="item-type-badge type-{{ item.type }}">{{ item.type.replace('_',' ') }}</span>
         <div class="item-title">{{ item.title }}</div>
         <div class="item-actions">
+          <button class="item-action-btn" style="background:rgba(99,102,241,.15);color:var(--primary-light);"
+                  data-iid="{{ item.id }}"
+                  data-ititle="{{ item.title|e }}"
+                  data-idesc="{{ (item.description or '')|e }}"
+                  data-iurl="{{ (item.url or '')|e }}"
+                  data-itype="{{ item.type }}"
+                  onclick="openEditItem(this)"
+                  data-testid="button-edit-item-{{ item.id }}">✏️ Edit</button>
           <form method="POST" action="{{ url_for('admin_course_delete_content', course_id=course.id, item_id=item.id) }}"
                 onsubmit="return confirm('Delete this item?')">
             <button type="submit" class="item-action-btn btn-del-item" data-testid="button-delete-item-{{ item.id }}">Delete</button>
@@ -306,6 +314,31 @@
 </div>
 {% endblock %}
 
+<!-- Edit Content Item Modal -->
+<div class="modal-overlay" id="editItemModal">
+  <div class="modal-box" style="max-width:480px;">
+    <h2>✏️ Edit Content</h2>
+    <form method="POST" id="editItemForm" action="">
+      <div class="modal-field">
+        <label class="modal-label">Title *</label>
+        <input type="text" name="title" id="editItemTitle" class="modal-input" required/>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Description</label>
+        <textarea name="description" id="editItemDesc" class="modal-textarea" rows="3"></textarea>
+      </div>
+      <div id="editItemUrlField" class="modal-field" style="display:none;">
+        <label class="modal-label" id="editItemUrlLabel">URL</label>
+        <input type="url" name="url" id="editItemUrl" class="modal-input"/>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('editItemModal')">Cancel</button>
+        <button type="submit" class="btn-submit">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 {% block extra_js %}
 <script>
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
@@ -332,6 +365,27 @@ function setType(type,btn) {
     const el=document.getElementById('fields-'+t);
     if(el) el.classList.toggle('show',t===type);
   });
+}
+const URL_TYPES = ['youtube','youtube_live','link','iframe','video'];
+const URL_LABELS = {youtube:'YouTube URL',youtube_live:'YouTube Live URL',link:'URL',iframe:'Embed URL (iframe src)',video:'Video URL (optional)'};
+function openEditItem(btn) {
+  const id    = btn.dataset.iid;
+  const type  = btn.dataset.itype;
+  document.getElementById('editItemForm').action = '/admin/courses/{{ course.id }}/library/content/' + id + '/edit';
+  document.getElementById('editItemTitle').value = btn.dataset.ititle;
+  document.getElementById('editItemDesc').value  = btn.dataset.idesc;
+  const urlField = document.getElementById('editItemUrlField');
+  const urlInput = document.getElementById('editItemUrl');
+  const urlLabel = document.getElementById('editItemUrlLabel');
+  if (URL_TYPES.includes(type)) {
+    urlField.style.display = 'block';
+    urlLabel.textContent = URL_LABELS[type] || 'URL';
+    urlInput.value = btn.dataset.iurl;
+  } else {
+    urlField.style.display = 'none';
+    urlInput.value = '';
+  }
+  openModal('editItemModal');
 }
 function confirmFolderDel(e,name) {
   e.stopPropagation();

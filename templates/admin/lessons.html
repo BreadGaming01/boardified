@@ -156,7 +156,15 @@
             <form method="POST" action="{{ url_for('admin_course_toggle_notice', course_id=course.id, notice_id=notice.id) }}" style="margin:0;">
               <button type="submit" style="font-size:0.72rem;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-muted);cursor:pointer;" title="{{ 'Hide' if notice.is_active else 'Show' }}">{{ '👁 Hide' if notice.is_active else '👁 Show' }}</button>
             </form>
-            <button onclick="openEditNotice('{{ notice.id }}','{{ notice.type }}',{{ notice.title|tojson }},{{ (notice.message or '')|tojson }},{{ (notice.link or '')|tojson }},{{ (notice.link_text or 'Open')|tojson }})" style="font-size:0.72rem;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-muted);cursor:pointer;">✏️ Edit</button>
+            <button
+              data-nid="{{ notice.id }}"
+              data-ntype="{{ notice.type }}"
+              data-ntitle="{{ notice.title|e }}"
+              data-nmessage="{{ (notice.message or '')|e }}"
+              data-nlink="{{ (notice.link or '')|e }}"
+              data-nlinktext="{{ (notice.link_text or 'Open')|e }}"
+              onclick="openEditNoticeFromBtn(this)"
+              style="font-size:0.72rem;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text-muted);cursor:pointer;">✏️ Edit</button>
             <form method="POST" action="{{ url_for('admin_course_delete_notice', course_id=course.id, notice_id=notice.id) }}" style="margin:0;" onsubmit="return confirm('Delete this notice?')">
               <button type="submit" style="font-size:0.72rem;padding:4px 10px;border-radius:6px;border:1px solid rgba(239,68,68,.3);background:none;color:#f87171;cursor:pointer;">🗑 Delete</button>
             </form>
@@ -382,12 +390,18 @@ function toggleSection(id) {
   const el = document.getElementById(id);
   el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
-function openEditNotice(id, type, title, message, link, linkText) {
+function openEditNoticeFromBtn(btn) {
+  const id       = btn.dataset.nid;
+  const type     = btn.dataset.ntype;
+  const title    = btn.dataset.ntitle;
+  const message  = btn.dataset.nmessage;
+  const link     = btn.dataset.nlink;
+  const linkText = btn.dataset.nlinktext;
   document.getElementById('editNoticeForm').action = '/admin/courses/{{ course.id }}/notices/' + id + '/edit';
-  document.getElementById('editNtype').value = type;
-  document.getElementById('editNtitle').value = title;
+  document.getElementById('editNtype').value    = type;
+  document.getElementById('editNtitle').value   = title;
   document.getElementById('editNmessage').value = message;
-  document.getElementById('editNlink').value = link;
+  document.getElementById('editNlink').value    = link;
   document.getElementById('editNlinkText').value = linkText;
   document.getElementById('editNoticeModal').classList.add('open');
 }

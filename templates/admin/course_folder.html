@@ -212,6 +212,14 @@
             <input type="hidden" name="folder_id" value="{{ folder.id }}"/>
             <button type="submit" class="item-action-btn btn-reorder" title="Move down">↓</button>
           </form>
+          <button class="item-action-btn" style="background:rgba(99,102,241,.15);color:var(--primary-light);"
+                  data-iid="{{ item.id }}"
+                  data-ititle="{{ item.title|e }}"
+                  data-idesc="{{ (item.description or '')|e }}"
+                  data-iurl="{{ (item.url or '')|e }}"
+                  data-itype="{{ item.type }}"
+                  onclick="openEditItem(this)"
+                  data-testid="button-edit-item-{{ item.id }}">✏️ Edit</button>
           <button class="item-action-btn btn-move"
                   onclick="openMoveModal('{{ item.id }}')"
                   data-testid="button-move-item-{{ item.id }}">↗ Move</button>
@@ -396,6 +404,31 @@
   </div>
 </div>
 
+<!-- Edit Content Item Modal -->
+<div class="modal-overlay" id="editItemModal">
+  <div class="modal-box" style="max-width:480px;">
+    <h2>✏️ Edit Content</h2>
+    <form method="POST" id="editItemForm" action="">
+      <div class="modal-field">
+        <label class="modal-label">Title *</label>
+        <input type="text" name="title" id="editItemTitle" class="modal-input" required/>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Description</label>
+        <textarea name="description" id="editItemDesc" class="modal-textarea" rows="3"></textarea>
+      </div>
+      <div id="editItemUrlField" class="modal-field" style="display:none;">
+        <label class="modal-label" id="editItemUrlLabel">URL</label>
+        <input type="url" name="url" id="editItemUrl" class="modal-input"/>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal('editItemModal')">Cancel</button>
+        <button type="submit" class="btn-submit">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Viewer Modal -->
 <div class="viewer-overlay" id="viewerModal">
   <div class="viewer-box">
@@ -436,6 +469,27 @@ function openMoveModal(itemId) {
   document.getElementById('moveForm').action='/admin/courses/{{ course.id }}/library/content/'+itemId+'/move';
   openModal('moveModal');
 }
+const EDIT_URL_TYPES = ['youtube','youtube_live','link','iframe','video'];
+const EDIT_URL_LABELS = {youtube:'YouTube URL',youtube_live:'YouTube Live URL',link:'URL',iframe:'Embed URL (iframe src)',video:'Video URL (optional)'};
+function openEditItem(btn) {
+  const id   = btn.dataset.iid;
+  const type = btn.dataset.itype;
+  document.getElementById('editItemForm').action = '/admin/courses/{{ course.id }}/library/content/' + id + '/edit';
+  document.getElementById('editItemTitle').value = btn.dataset.ititle;
+  document.getElementById('editItemDesc').value  = btn.dataset.idesc;
+  const urlField = document.getElementById('editItemUrlField');
+  const urlInput = document.getElementById('editItemUrl');
+  const urlLabel = document.getElementById('editItemUrlLabel');
+  if (EDIT_URL_TYPES.includes(type)) {
+    urlField.style.display = 'block';
+    urlLabel.textContent = EDIT_URL_LABELS[type] || 'URL';
+    urlInput.value = btn.dataset.iurl;
+  } else {
+    urlField.style.display = 'none';
+    urlInput.value = '';
+  }
+  openModal('editItemModal');
+}
 function extractYTId(url) {
   const patterns=[/youtu\.be\/([^?&\s]+)/,/[?&]v=([^?&\s]+)/,/youtube\.com\/live\/([^?&\s]+)/,/youtube\.com\/embed\/([^?&\s]+)/];
   for(const p of patterns){const m=url.match(p);if(m)return m[1];}
@@ -460,7 +514,7 @@ function openViewer(type,url,filePath,title) {
   } else if(type==='link'){
     html=`<div class="viewer-link"><a href="${url}" target="_blank">${url}</a></div>`;
   } else if(type==='iframe'){
-    html=`<iframe class="viewer-iframe" src="${url}" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
+    html=`<iframe class="viewer-iframe" src="${url}" allowfullscreen allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-downloads allow-modals allow-presentation"></iframe>`;
   }
   body.innerHTML=html;
   document.getElementById('viewerModal').classList.add('open');

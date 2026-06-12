@@ -351,7 +351,7 @@ function cfOpenViewer(type, url, filePath, title) {
   } else if (type === 'link') {
     html = `<div class="cf-viewer-link"><a href="${url}" target="_blank">${url}</a></div>`;
   } else if (type === 'iframe') {
-    html = `<iframe class="cf-viewer-iframe" src="${url}" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`;
+    html = `<iframe class="cf-viewer-iframe" src="${url}" allowfullscreen allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-downloads allow-modals allow-presentation"></iframe>`;
   }
   body.innerHTML = html;
   document.getElementById('cfViewerModal').classList.add('open');

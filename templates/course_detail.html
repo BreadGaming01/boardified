@@ -1479,7 +1479,7 @@ function openLibViewer(type, url, filePath, title) {
   } else if (type==='photo') { html=`<img class="lib-viewer-img" src="${filePath}" alt="${title}"/>`;
   } else if (type==='video') { html=`<video class="lib-viewer-video" controls autoplay src="${filePath||url}"></video>`;
   } else if (type==='link')  { html=`<div class="lib-viewer-link"><a href="${url}" target="_blank">${url}</a></div>`;
-  } else if (type==='iframe'){ html=`<iframe class="lib-viewer-iframe" src="${url}" allowfullscreen sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>`; }
+  } else if (type==='iframe'){ html=`<iframe class="lib-viewer-iframe" src="${url}" allowfullscreen allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-downloads allow-modals allow-presentation"></iframe>`; }
   body.innerHTML = html;
   $('libViewerModal').classList.add('open');
 }

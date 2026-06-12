@@ -117,6 +117,32 @@
       "file_path": "uploads/3ddf6598-a0d8-4e65-ba82-2b6b740dd861_Screenshot_2026-05-05-17-34-22-290_com.android.chrome.jpg",
       "file_name": "Screenshot_2026-05-05-17-34-22-290_com.android.chrome.jpg",
       "created_at": "2026-05-05T14:17:07.373588"
+    },
+    {
+      "id": "340fa09d-34ae-4ee5-b928-5baaa422a956",
+      "folder_id": null,
+      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "title": "Tejaswi",
+      "description": "",
+      "type": "iframe",
+      "url": "https://rarestudy.in/",
+      "file_path": null,
+      "file_name": null,
+      "order": 1,
+      "created_at": "2026-06-12T16:49:19.203739"
+    },
+    {
+      "id": "afe0fc2e-7cc5-4d89-b10d-39c134fcfea2",
+      "folder_id": null,
+      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "title": "Helli",
+      "description": "",
+      "type": "iframe",
+      "url": "https://youtube.com/shorts/XGbAfc-Oejc?si=9ubuMu6VRAIz5zPW",
+      "file_path": null,
+      "file_name": null,
+      "order": 2,
+      "created_at": "2026-06-12T16:49:51.544010"
     }
   ],
   "coupons": [],

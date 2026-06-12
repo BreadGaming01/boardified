@@ -1279,6 +1279,40 @@ def admin_course_add_content(course_id):
     flash(f'"{title}" added.', "success")
     return redirect(back)
 
+@app.route("/admin/courses/<course_id>/library/content/<item_id>/edit", methods=["POST"])
+@admin_required
+def admin_course_edit_content(course_id, item_id):
+    db = load_db()
+    item = next((i for i in db["content_items"] if i["id"] == item_id), None)
+    if not item:
+        flash("Content item not found.", "danger")
+        return redirect(url_for("admin_course_library", course_id=course_id))
+    folder_id = item.get("folder_id")
+    title       = request.form.get("title", "").strip()
+    description = request.form.get("description", "").strip()
+    url_input   = request.form.get("url", "").strip() or None
+    if not title:
+        flash("Title is required.", "danger")
+    else:
+        item["title"] = title
+        item["description"] = description
+        ctype = item.get("type", "")
+        if ctype in ("youtube", "youtube_live", "link", "iframe"):
+            if url_input:
+                item["url"] = url_input
+            elif not item.get("url"):
+                flash("A URL is required for this content type.", "danger")
+                back = (url_for("admin_course_folder", course_id=course_id, folder_id=folder_id)
+                        if folder_id else url_for("admin_course_library", course_id=course_id))
+                return redirect(back)
+        elif ctype == "video" and url_input and not item.get("file_path"):
+            item["url"] = url_input
+        save_db(db)
+        flash(f'"{title}" updated.', "success")
+    back = (url_for("admin_course_folder", course_id=course_id, folder_id=folder_id)
+            if folder_id else url_for("admin_course_library", course_id=course_id))
+    return redirect(back)
+
 @app.route("/admin/courses/<course_id>/library/content/<item_id>/delete", methods=["POST"])
 @admin_required
 def admin_course_delete_content(course_id, item_id):
