@@ -1,162 +1,436 @@
 {
   "users": [
     {
-      "id": "2f65c51a-fd65-4176-8bf8-6678b8f5917e",
+      "id": "ac037ae2-85e4-4266-a651-ff286deecff2",
       "username": "admin",
       "email": "itzbreadgaming@gmail.com",
       "password": "2ca178a5fe44f98b4e295bef3f7ec7281798ea3ab04e9c224e16e7067576bff6",
       "role": "admin",
-      "created_at": "2026-05-05T11:17:25.459455"
+      "created_at": "2026-05-05T12:30:01.002189"
+    },
+    {
+      "id": "8e458e04-c11e-4695-9a3f-d54cd2fbab75",
+      "username": "Harsh",
+      "email": "hk6287416@gmail.com",
+      "password": "6296c719b7aa4f938eaf7cc0a056909e849a71119bd7453f09f6e1dedafa6501",
+      "role": "user",
+      "created_at": "2026-06-10T12:34:10.263981"
+    },
+    {
+      "id": "a9ea52e0-b54e-473a-92f5-684a47b90b0e",
+      "username": "Tejaswi",
+      "email": "tejaswiaarya@gmail.com",
+      "password": "2ca178a5fe44f98b4e295bef3f7ec7281798ea3ab04e9c224e16e7067576bff6",
+      "role": "user",
+      "created_at": "2026-06-10T12:35:15.495591"
     }
   ],
   "courses": [
     {
-      "id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
-      "title": "JaNna",
-      "description": "Ahha",
-      "price": 0.0,
-      "category": "Bsbsh",
-      "thumbnail": "",
+      "id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
+      "title": "Sigma Batch Class X",
+      "description": "This will be best batch of class x",
+      "price": 100.0,
+      "category": "Study",
+      "thumbnail": "https://rblfinancecorporatedlimited.wordpress.com/wp-content/uploads/2026/03/gemini_generated_image_8x2l7d8x2l7d8x2l8897546019484899199.png",
       "level": "Beginner",
       "instructor": "admin",
       "lessons": [],
-      "created_at": "2026-05-05T13:57:18.669016",
-      "updated_at": "2026-05-05T13:57:18.669021"
+      "created_at": "2026-05-05T14:47:17.640478",
+      "updated_at": "2026-05-05T14:47:17.640497"
+    },
+    {
+      "id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "title": "DOMINATE JEE 2029",
+      "description": "This for jee foundation",
+      "price": 1000.0,
+      "category": "",
+      "thumbnail": "https://rblfinancecorporatedlimited.wordpress.com/wp-content/uploads/2026/03/17810789404367204320168008566695.png",
+      "level": "Beginner",
+      "instructor": "admin",
+      "lessons": [],
+      "created_at": "2026-06-10T08:15:16.156043",
+      "updated_at": "2026-06-10T08:15:16.156052"
     }
   ],
   "purchases": [
     {
-      "id": "d124c3fe-2ff5-48b8-993e-c470008dd938",
-      "user_id": "2f65c51a-fd65-4176-8bf8-6678b8f5917e",
-      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
-      "amount": 0.0,
+      "id": "e447c467-2b14-421c-8500-c980cf441abb",
+      "user_id": "ac037ae2-85e4-4266-a651-ff286deecff2",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "amount": 1000.0,
+      "final_amount": 1000.0,
+      "coupon_code": null,
       "status": "failed",
-      "session_key": "d124c3fe-2ff5-48b8-993e-c470008dd938",
-      "created_at": "2026-05-05T13:57:51.150869"
+      "session_key": "8641cf7f-ca6a-49d6-a308-220885c82555",
+      "created_at": "2026-06-10T12:26:27.735071"
     },
     {
-      "id": "930a699a-4db9-41c4-a5fc-215b08963b41",
-      "user_id": "2f65c51a-fd65-4176-8bf8-6678b8f5917e",
-      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
-      "amount": 0.0,
+      "id": "3d3da62b-9471-480f-a01d-ba10ca0c5178",
+      "user_id": "8e458e04-c11e-4695-9a3f-d54cd2fbab75",
+      "course_id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
+      "amount": 100.0,
+      "final_amount": 100.0,
+      "coupon_code": null,
       "status": "failed",
-      "session_key": "930a699a-4db9-41c4-a5fc-215b08963b41",
-      "created_at": "2026-06-10T07:42:02.664200"
+      "session_key": "6d7e8005-62a9-467a-83fd-f06cba370e90",
+      "created_at": "2026-06-10T12:36:31.201070"
     },
     {
-      "id": "3c0cfdef-8326-41d1-b6d6-eb36301927b0",
-      "user_id": "2f65c51a-fd65-4176-8bf8-6678b8f5917e",
-      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
-      "amount": 0.0,
+      "id": "cc721c51-464f-480b-a074-875c074ee830",
+      "user_id": "8e458e04-c11e-4695-9a3f-d54cd2fbab75",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "amount": 1000.0,
+      "final_amount": 1000.0,
+      "coupon_code": null,
       "status": "failed",
-      "session_key": "3c0cfdef-8326-41d1-b6d6-eb36301927b0",
-      "created_at": "2026-06-12T13:10:42.607347"
+      "session_key": "6d7e8005-62a9-467a-83fd-f06cba370e90",
+      "created_at": "2026-06-10T12:36:31.201100"
     },
     {
-      "id": "d5ce8ee2-8844-4b4d-b9d4-66a2d902183e",
-      "user_id": "2f65c51a-fd65-4176-8bf8-6678b8f5917e",
-      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
-      "amount": 0.0,
+      "id": "25173801-62de-4fbe-b16e-68bf2d597b1b",
+      "user_id": "8e458e04-c11e-4695-9a3f-d54cd2fbab75",
+      "course_id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
+      "amount": 100.0,
+      "final_amount": 100.0,
+      "coupon_code": null,
       "status": "failed",
-      "session_key": "d5ce8ee2-8844-4b4d-b9d4-66a2d902183e",
-      "created_at": "2026-06-12T13:10:46.993508"
+      "session_key": "936f99cb-6149-480d-9326-e004c1ff093f",
+      "created_at": "2026-06-10T12:36:56.138173"
     },
     {
-      "id": "7a3f56e3-b612-4190-b637-cd89aad550c7",
-      "user_id": "2f65c51a-fd65-4176-8bf8-6678b8f5917e",
-      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
-      "amount": 0.0,
+      "id": "3ff2ced1-e663-4489-92ed-15c92086b8bd",
+      "user_id": "8e458e04-c11e-4695-9a3f-d54cd2fbab75",
+      "course_id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
+      "amount": 100.0,
+      "final_amount": 100.0,
+      "coupon_code": null,
       "status": "failed",
-      "session_key": "7a3f56e3-b612-4190-b637-cd89aad550c7",
-      "created_at": "2026-06-12T13:10:49.475237"
+      "session_key": "c6453ccb-5b5d-48a4-8e1e-3387ab3860e7",
+      "created_at": "2026-06-10T12:37:05.690604"
+    },
+    {
+      "id": "8e55e137-16b3-494a-a063-7acde0d281fe",
+      "user_id": "8e458e04-c11e-4695-9a3f-d54cd2fbab75",
+      "course_id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
+      "amount": 100.0,
+      "final_amount": 100.0,
+      "coupon_code": null,
+      "status": "failed",
+      "session_key": "310734e4-3cf4-4762-86b1-94a8b15a56d4",
+      "created_at": "2026-06-10T12:37:45.319472"
+    },
+    {
+      "id": "657f5562-bf23-4646-9201-8dbcac22deb9",
+      "user_id": "8e458e04-c11e-4695-9a3f-d54cd2fbab75",
+      "course_id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
+      "amount": 100.0,
+      "final_amount": 0.0,
+      "coupon_code": "HARSH-GPP",
+      "status": "paid",
+      "session_key": "2d4dad30-7d2f-4c0d-b3d8-930e87f1f88c",
+      "created_at": "2026-06-10T12:37:48.562275"
+    },
+    {
+      "id": "eb085d09-1287-4da7-b038-e9a0fb135c5a",
+      "user_id": "8e458e04-c11e-4695-9a3f-d54cd2fbab75",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "amount": 0,
+      "status": "paid",
+      "session_key": "admin_grant",
+      "created_at": "2026-06-10T12:40:33.784242"
+    },
+    {
+      "id": "ced91801-da06-41b2-bbe8-0a5580b3c88e",
+      "user_id": "ac037ae2-85e4-4266-a651-ff286deecff2",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "amount": 0,
+      "status": "paid",
+      "session_key": "admin_grant",
+      "created_at": "2026-06-12T05:24:08.286674"
+    },
+    {
+      "id": "4a57f86a-6572-4f33-8dbc-1554c8477554",
+      "user_id": "a9ea52e0-b54e-473a-92f5-684a47b90b0e",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "amount": 1000.0,
+      "final_amount": 1000.0,
+      "coupon_code": null,
+      "status": "failed",
+      "session_key": "f8469b80-1640-4118-8876-78664f6dc714",
+      "created_at": "2026-06-12T07:58:17.262973"
+    },
+    {
+      "id": "8f035a50-bebd-4cc1-beea-9fbc1be0d949",
+      "user_id": "a9ea52e0-b54e-473a-92f5-684a47b90b0e",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "amount": 1000.0,
+      "final_amount": 0.0,
+      "coupon_code": "TEJASWI",
+      "status": "paid",
+      "session_key": "ccfb577a-a563-452c-b147-cd1784c79e67",
+      "created_at": "2026-06-12T07:58:22.728578"
     }
   ],
   "folders": [
     {
-      "id": "36683b9f-52f0-46b1-a436-95b7e0dd4418",
-      "name": "Bsnsn",
+      "id": "80262e59-b1c5-4c42-bf4d-12689ffd4dbb",
+      "name": "ANNOUNCEMENTS",
       "description": "",
-      "color": "#6366f1",
-      "icon": "\ud83d\udcc1",
-      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
+      "color": "#06b6d4",
+      "icon": "\u26a1",
+      "course_id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
       "parent_folder_id": null,
-      "created_at": "2026-05-05T14:16:46.050618"
+      "created_at": "2026-05-06T09:55:04.526512"
     },
     {
-      "id": "67d01eb6-0aa8-4bf2-9763-5475caa1c298",
-      "name": "Bsjwj",
+      "id": "808a0ae7-19e7-4f82-ab42-f2540b54b0c6",
+      "name": "RANDOM RESOURCES",
       "description": "",
       "color": "#6366f1",
       "icon": "\ud83d\udcc1",
-      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
-      "parent_folder_id": "36683b9f-52f0-46b1-a436-95b7e0dd4418",
-      "created_at": "2026-05-05T14:16:53.203481"
+      "course_id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
+      "parent_folder_id": null,
+      "created_at": "2026-05-06T09:52:40.744409"
+    },
+    {
+      "id": "d62b339f-e7d7-4c5e-ab71-490c0e3085be",
+      "name": "STUDY MATERIALS",
+      "description": "",
+      "color": "#6366f1",
+      "icon": "\ud83d\udcda",
+      "course_id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
+      "parent_folder_id": null,
+      "created_at": "2026-05-06T09:52:58.562185"
+    },
+    {
+      "id": "1cfcf2e9-dffb-4105-b746-dc5974f62510",
+      "name": "LINKS",
+      "description": "",
+      "color": "#22c55e",
+      "icon": "\ud83d\udd17",
+      "course_id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
+      "parent_folder_id": null,
+      "created_at": "2026-05-06T09:53:30.082193"
+    },
+    {
+      "id": "5b8f0b85-a61a-4888-8e7e-b08ce2308153",
+      "name": "LECTURES",
+      "description": "",
+      "color": "#ef4444",
+      "icon": "\ud83c\udfac",
+      "course_id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
+      "parent_folder_id": null,
+      "created_at": "2026-05-06T09:54:08.725093"
+    },
+    {
+      "id": "002f4589-192b-476d-936b-865c08ecb14d",
+      "name": "Vhhh",
+      "description": "",
+      "color": "#6366f1",
+      "icon": "\ud83d\udcc1",
+      "course_id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
+      "parent_folder_id": null,
+      "created_at": "2026-05-06T10:06:47.270806"
+    },
+    {
+      "id": "36a872ac-4f14-4cdc-b874-a69aa1ce291c",
+      "name": "Announcements",
+      "description": "",
+      "color": "#22c55e",
+      "icon": "\ud83d\udd25",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "parent_folder_id": null,
+      "created_at": "2026-06-12T04:53:44.376551"
+    },
+    {
+      "id": "764071e3-2cdb-4196-96b7-78769abb626a",
+      "name": "\ud83d\ude80 PHYSICS",
+      "description": "",
+      "color": "#6366f1",
+      "icon": "\ud83d\udee0\ufe0f",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "parent_folder_id": null,
+      "created_at": "2026-06-12T04:56:30.595301"
+    },
+    {
+      "id": "5bf726a7-b649-48ed-8808-584aad3d5d19",
+      "name": "\u269b Chemistry",
+      "description": "",
+      "color": "#6366f1",
+      "icon": "\ud83d\udcc1",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "parent_folder_id": null,
+      "created_at": "2026-06-12T04:58:39.624989"
+    },
+    {
+      "id": "853c9f25-9a69-4f59-a49e-2fd7bd2e380c",
+      "name": "\ud83d\udd22Maths",
+      "description": "",
+      "color": "#6366f1",
+      "icon": "\ud83d\udcca",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "parent_folder_id": null,
+      "created_at": "2026-06-12T05:01:04.293877"
+    },
+    {
+      "id": "d8f8e630-5494-48e9-9952-8b3c6d95d3c8",
+      "name": "Resources",
+      "description": "",
+      "color": "#6366f1",
+      "icon": "\ud83d\udcda",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "parent_folder_id": null,
+      "created_at": "2026-06-12T05:01:36.062474"
+    },
+    {
+      "id": "b424668f-dc83-46fb-bebb-82b9ff2d99d3",
+      "name": "Bridge Course",
+      "description": "",
+      "color": "#22c55e",
+      "icon": "\ud83d\udd17",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "parent_folder_id": null,
+      "created_at": "2026-06-12T05:02:44.581995"
     }
   ],
   "content_items": [
     {
-      "id": "bf807a96-8dea-460b-8f2c-d12c46b3ceef",
-      "folder_id": null,
-      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
-      "title": "Hahah",
+      "id": "955b6dbe-b902-4174-bd4b-5ff5052cb0e8",
+      "folder_id": "b424668f-dc83-46fb-bebb-82b9ff2d99d3",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "title": "Maths Bridge course",
       "description": "",
-      "type": "pdf",
-      "url": null,
-      "file_path": "uploads/7e8ad594-bdeb-4150-b14e-e7dac17547e4_NCERT-Chapterwise-Solution-The-Sermon-at-Benaras.pdf",
-      "file_name": "NCERT-Chapterwise-Solution-The-Sermon-at-Benaras.pdf",
-      "created_at": "2026-05-05T13:57:42.852464"
-    },
-    {
-      "id": "f1a18b66-32a6-4260-b509-4f4ea4837aec",
-      "folder_id": "67d01eb6-0aa8-4bf2-9763-5475caa1c298",
-      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
-      "title": "Bsnsn",
-      "description": "",
-      "type": "photo",
-      "url": null,
-      "file_path": "uploads/3ddf6598-a0d8-4e65-ba82-2b6b740dd861_Screenshot_2026-05-05-17-34-22-290_com.android.chrome.jpg",
-      "file_name": "Screenshot_2026-05-05-17-34-22-290_com.android.chrome.jpg",
-      "created_at": "2026-05-05T14:17:07.373588"
-    },
-    {
-      "id": "340fa09d-34ae-4ee5-b928-5baaa422a956",
-      "folder_id": null,
-      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
-      "title": "Tejaswi",
-      "description": "",
-      "type": "iframe",
-      "url": "https://rarestudy.in/",
+      "type": "youtube",
+      "url": "https://www.youtube.com/live/GDB4lA2-bFU?si=-QbWhHieHP5Bg8EV",
       "file_path": null,
       "file_name": null,
-      "order": 1,
-      "created_at": "2026-06-12T16:49:19.203739"
+      "order": 0,
+      "created_at": "2026-06-12T05:10:33.344491"
     },
     {
-      "id": "afe0fc2e-7cc5-4d89-b10d-39c134fcfea2",
-      "folder_id": null,
-      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
-      "title": "Helli",
+      "id": "ece28d55-37c7-40a7-8f64-b6185c748ebd",
+      "folder_id": "b424668f-dc83-46fb-bebb-82b9ff2d99d3",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "title": "Physics Bridge Course",
       "description": "",
-      "type": "iframe",
-      "url": "https://youtube.com/shorts/XGbAfc-Oejc?si=9ubuMu6VRAIz5zPW",
+      "type": "youtube",
+      "url": "https://www.youtube.com/live/5sA9uo8qtUs?si=m67uAka-tpXymUas",
       "file_path": null,
       "file_name": null,
       "order": 2,
-      "created_at": "2026-06-12T16:49:51.544010"
+      "created_at": "2026-06-12T05:11:34.129012"
+    },
+    {
+      "id": "93c0e768-c592-4cc4-a368-71a7fa8451f1",
+      "folder_id": "d8f8e630-5494-48e9-9952-8b3c6d95d3c8",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "title": "UDAAN ADVANCED",
+      "description": "",
+      "type": "iframe",
+      "url": "https://deltastudy.site/study-v2/batches/69fd8dffe3722cbb00fa0dd8?name=UDAAN%20Advanced%202027",
+      "file_path": null,
+      "file_name": null,
+      "order": 1,
+      "created_at": "2026-06-12T05:23:45.197568"
+    },
+    {
+      "id": "dd2a34e1-7e10-4e59-b475-d56e6c9948fd",
+      "folder_id": "b424668f-dc83-46fb-bebb-82b9ff2d99d3",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "title": "Pankaj Joshi Bridge Course First make Access key from resources section",
+      "description": "",
+      "type": "iframe",
+      "url": "https://deltastudy.site/vibrant/player?course_id=8&video_id=4572",
+      "file_path": null,
+      "file_name": null,
+      "order": 3,
+      "created_at": "2026-06-12T05:30:08.628702"
+    },
+    {
+      "id": "03f783fb-6f5a-41dc-be6f-03adc9e15bb4",
+      "folder_id": "d8f8e630-5494-48e9-9952-8b3c6d95d3c8",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "title": "Make access Key (DELTA STUDY PREMIUM",
+      "description": "",
+      "type": "iframe",
+      "url": "https://Deltastudy.site/deltayriwozhdnw673828",
+      "file_path": null,
+      "file_name": null,
+      "order": 2,
+      "created_at": "2026-06-12T05:31:18.923360"
+    },
+    {
+      "id": "eff6fa6c-6e71-4218-8d43-5fd155f93cdb",
+      "folder_id": "764071e3-2cdb-4196-96b7-78769abb626a",
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "title": "Hello",
+      "description": "",
+      "type": "iframe",
+      "url": "https://deltastudy.site/pw/drm/play?video_id=6a2812dac706d8da230bcfe2&subject_slug=physics-by-rakshak-sir-962027&batch_id=67790151518b938bc630052d&schedule_id=6a2812dac706d8da230bcfe2&subject_id=69d39cb53dc94f34bcbbde22&topicSlug=human-eye-and-the-colorful-world-106797",
+      "file_path": null,
+      "file_name": null,
+      "order": 0,
+      "created_at": "2026-06-12T11:28:36.557376"
+    },
+    {
+      "id": "dcbb8a3a-cbed-40ca-b0f1-3e2a0c13188d",
+      "folder_id": null,
+      "course_id": "697106a7-bb4a-4ad4-b211-4fe852237c46",
+      "title": "Siddhart sharma is live",
+      "description": "",
+      "type": "iframe",
+      "url": "https://rarestudy.in/media/8Sbf0Y2UObtsy34z3TA4p1T3sRpXqNVMULMMrc2zr0E5ZGv-2NHp1cplKWGbvE2V_98v8pkISnHhvcHOFLdvECKovKvSQO_60Z8ODlu44bJ-mYIQDWIS7ilYWDdVu5j9g5D7ySUWuyeE61UIDxVvHG1hOJozPuHN8GsztioKb_ap49evJAgocEuiWLRMlAR4QBWseOESgbXyKJ9q_tU2K1Si8wPcz5fye1l-K0Nw_3MrylMy9y6UNofxMFEhG2xqvJZxxMXC6fKQfP8zvHSyWAgZD1FvzLDhEMHSyVua6M4jsWSjCqUXiiWpJLZdooQGhB6vscq42NA2QTllFwaJ7vpPs62k9u-mbuHviLSXwE8N-e_Odn0mMQV3dXMslCJsUn2rFmsltAZ4pwcrKwhlCkEAQSSg0B9ezmIgolEJvO5QidY9ESdMc55M2wioJqTETwYtzC4TyTG15E8bHrUABfswRIr12XugDS04QJCvGz-IhsFYumK2oJAn33kCcJEVLmgcYZ51qkKFOC8FV69kiv3m6yb3TgTJlp4g75Gd0uNfFV3zyluO9okTo6KABuqABJ_Y1sKlkbXgRNGIEhbFLgsHGVHJGCsG-H3jqA8o9WSpXhEQl-nTUThMewgM1YSngzv_1E7LFdadPFLYccQUSz0PrxsJHhNQ98215QQy26vX3LMFTjwEC3Kn2X0ugDDZNiekpN1KkwoGERoKSjW5L5Hp29WOVI5lzCuL_JVRNmbmkWB6CFJWQSsBX5ziqoxArupayULOVayUc1TcTnAexmSRsmqKzvz_twDBYOd_ECB-ezHX78rEigLNNJBcpC3eT4SIlBSsr2VOmC-hXXTnx1H7Cl_ilWLe2MODLfJaqPMRVpyC8NullUv2j7bbmgeFiCVg5whed2hZOe4RyhX0cSOuiJmo0DZ0utVEFL_TuVsJbmkbS9DWU9c-tHn5Shb0ycFma9MsEs3KgwXSsalzh8cC_KSlJeQ9UYggDBJ5JPMQaPU3SwSrmxIS8HDOFs5DGf3B13ObOOQSIaTVCvMP3AJ8HuJxfNID_h7W8aCJHWwdND870zY_NSAKpdGyrN8Lvm0KGSc9eReKcDvVDf94byM5djiXcOt8EpH3mecul-q9Wc1ALOXLeazrshk1cPeHjMO51FMzwUwelYcHaDSTEJmeKfe637IPE9pYOy1Xe1E3KTCQOB_ioWQ479A9rvTctkbhbYe5RKnIq8VBaqFOShLeTzgSth-IL3-_L9AQ7zY",
+      "file_path": null,
+      "file_name": null,
+      "order": 0,
+      "created_at": "2026-06-12T13:52:16.357987"
+    },
+    {
+      "id": "cbaa8786-3c4c-4338-85ad-fb3627fd3ee8",
+      "folder_id": null,
+      "course_id": "756590be-8853-4974-bd57-ad3463f14b83",
+      "title": "Helo I M live",
+      "description": "",
+      "type": "iframe",
+      "url": "https://d8e53cf8-3158-49c8-ab96-822c98e7e5b0-00-2wk5ho3wbrw52.pike.replit.dev/stream/ac3192a9-fc3d-47aa-bb86-25fb160f6511/watch",
+      "file_path": null,
+      "file_name": null,
+      "order": 0,
+      "created_at": "2026-06-12T13:59:46.417647"
     }
   ],
-  "coupons": [],
-  "notices": [
+  "coupons": [
     {
-      "id": "fe7d7eff-948e-4e2b-9e54-93cff1b11a56",
-      "course_id": "86b65345-d0ab-47cb-9606-f2a39fbdcbb8",
-      "type": "live_class",
-      "title": "Uiwjw",
-      "message": "Hello",
-      "link": null,
-      "link_text": "Join Now",
-      "is_active": true,
-      "created_at": "2026-06-12T13:24:39.212787"
+      "id": "2174badc-01bd-49ce-b4cb-eaf17ae883d2",
+      "code": "TEJASWI",
+      "type": "percent",
+      "value": 100.0,
+      "limit": null,
+      "usage_count": 1,
+      "active": true,
+      "created_at": "2026-05-06T09:51:36.286628"
+    },
+    {
+      "id": "3fa419b0-1ac5-4f0d-a39b-69c0e84194fc",
+      "code": "MOHIT-JHT",
+      "type": "percent",
+      "value": 100.0,
+      "limit": 2,
+      "usage_count": 0,
+      "active": true,
+      "created_at": "2026-06-10T08:04:25.518176"
+    },
+    {
+      "id": "b9763850-d332-4584-92d7-a521d269017a",
+      "code": "HARSH-GPP",
+      "type": "percent",
+      "value": 100.0,
+      "limit": 2,
+      "usage_count": 1,
+      "active": false,
+      "created_at": "2026-06-10T08:06:27.748860"
     }
-  ]
+  ],
+  "notices": []
 }
